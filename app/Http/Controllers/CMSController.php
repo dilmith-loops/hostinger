@@ -207,16 +207,8 @@ class CMSController extends Controller
                 'description' => 'Get a professional virtual assistant for your business, free for 2 weeks. No contract. No commitment.'
             ],
             'hero' => [
-                'eyebrow' => 'Limited time offer',
                 'heading' => 'Get a professional virtual assistant for your business, free for 2 weeks.',
                 'subheadline' => 'No contract. No commitment. Just seamless support from day one.',
-                'description' => 'Ceylon Talent Connect connects Australian businesses with talented virtual assistants who handle admin, emails, calls, customer queries and more, so you can focus on what matters most.',
-                'trustPoints' => ['No credit card required', 'No lock-in contract', 'Australian managed'],
-                'stats' => [
-                    ['value' => '7 days', 'label' => 'Average setup'],
-                    ['value' => '50+', 'label' => 'AU businesses'],
-                    ['value' => '100%', 'label' => 'Managed service']
-                ],
                 'phone' => '1300 241 103'
             ],
             'form' => [
@@ -230,12 +222,6 @@ class CMSController extends Controller
                 'heading' => "You're on your way!",
                 'message' => 'Thanks! A member of our team will be in touch within 1 business day to get your trial started.',
                 'eta' => 'Within 1 business day'
-            ],
-            'footer' => [
-                'copyright' => '© ' . date('Y') . ' Ceylon Talent Connect Pty Ltd. All rights reserved.',
-                'linkedin' => 'https://www.linkedin.com/company/ceylon-talent-connect/',
-                'facebook' => 'https://www.facebook.com/p/Ceylontalentconnect-61574625940708/',
-                'instagram' => 'https://www.instagram.com/ceylon.talent.connect'
             ]
         ];
 
