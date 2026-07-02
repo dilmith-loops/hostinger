@@ -1,3 +1,3 @@
 <?php
-$info = getimagesize('public/uploads/cms_6a45e837db5fb4.72744640.png');
-echo json_encode($info, JSON_PRETTY_PRINT) . "\n";
+$content = file_get_contents('public/ctc/assets/index-C58Bc2af.css');
+echo substr($content, 8600, 600) . "\n";
