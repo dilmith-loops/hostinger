@@ -97,6 +97,24 @@ class CMSController extends Controller
         $page = $request->input('page');
         $data = $request->input('data');
 
+        // Support landing page slug routing changes
+        if (str_starts_with($page, 'lp_')) {
+            $oldSlug = substr($page, 3);
+            $newSlug = isset($data['meta']['slug']) ? trim($data['meta']['slug']) : null;
+            if ($newSlug && $newSlug !== $oldSlug) {
+                if (!preg_match('/^[a-z0-9-]+$/', $newSlug)) {
+                    return response()->json(['error' => 'Slug must contain only lowercase letters, numbers, and hyphens.'], 422);
+                }
+                $newPageName = 'lp_' . $newSlug;
+                if (PageContent::where('page', $newPageName)->exists()) {
+                    return response()->json(['error' => 'A landing page with this URL slug already exists.'], 422);
+                }
+                // Rename all rows in page_contents
+                PageContent::where('page', $page)->update(['page' => $newPageName]);
+                $page = $newPageName;
+            }
+        }
+
         foreach ($data as $key => $value) {
             PageContent::updateOrCreate(
                 ['page' => $page, 'key' => $key],
@@ -106,7 +124,8 @@ class CMSController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Content saved successfully.'
+            'message' => 'Content saved successfully.',
+            'newPage' => $page
         ]);
     }
 
@@ -160,19 +179,25 @@ class CMSController extends Controller
 
         foreach ($pages as $pageName => $contents) {
             $slug = substr($pageName, 3); // Remove "lp_" prefix
+            $name = '';
             $formTitle = 'Untitled';
             $metaTitle = '';
             foreach ($contents as $c) {
+                if ($c->key === 'meta') {
+                    if (isset($c->value['name'])) {
+                        $name = $c->value['name'];
+                    }
+                    if (isset($c->value['title'])) {
+                        $metaTitle = $c->value['title'];
+                    }
+                }
                 if ($c->key === 'form' && isset($c->value['title'])) {
                     $formTitle = $c->value['title'];
-                }
-                if ($c->key === 'meta' && isset($c->value['title'])) {
-                    $metaTitle = $c->value['title'];
                 }
             }
             $result[] = [
                 'slug' => $slug,
-                'title' => $metaTitle ?: $formTitle,
+                'title' => $name ?: ($metaTitle ?: $formTitle),
             ];
         }
 
@@ -182,59 +207,59 @@ class CMSController extends Controller
     /**
      * Create a new landing page.
      */
-    public function createLandingPage(Request $request)
-    {
-        if (!Auth::check()) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+     public function createLandingPage(Request $request)
+     {
+         if (!Auth::check()) {
+             return response()->json(['error' => 'Unauthorized'], 401);
+         }
 
-        $validated = $request->validate([
-            'slug' => ['required', 'string', 'regex:/^[a-z0-9-]+$/', 'max:100'],
-        ]);
+         $validated = $request->validate([
+             'slug' => ['required', 'string', 'regex:/^[a-z0-9-]+$/', 'max:100'],
+         ]);
 
-        $slug = $validated['slug'];
-        $pageName = 'lp_' . $slug;
+         $slug = $validated['slug'];
+         $pageName = 'lp_' . $slug;
 
-        // Check if it already exists
-        if (PageContent::where('page', $pageName)->exists()) {
-            return response()->json(['error' => 'Landing page with this slug already exists.'], 422);
-        }
+         // Check if it already exists
+         if (PageContent::where('page', $pageName)->exists()) {
+             return response()->json(['error' => 'Landing page with this slug already exists.'], 422);
+         }
 
-        // We populate with the default landing page data structure (jP)
-        $defaultData = [
-            'meta' => [
-                'title' => 'Free 2-Week VA Trial — Ceylon Talent Connect',
-                'description' => 'Get a professional virtual assistant for your business, free for 2 weeks. No contract. No commitment.'
-            ],
-            'hero' => [
-                'heading' => 'Get a professional virtual assistant for your business, free for 2 weeks.',
-                'subheadline' => 'No contract. No commitment. Just seamless support from day one.',
-                'phone' => '1300 241 103'
-            ],
-            'form' => [
-                'title' => 'Claim Your Free 2-Week Trial',
-                'ctaLabel' => 'Claim My Free Trial',
-                'businessTypes' => ['Medical / Allied Health', 'Legal / Professional Services', 'Trades / Construction', 'Real Estate', 'Retail / E-commerce', 'Other'],
-                'helpOptions' => ['Email and inbox management', 'Scheduling and calendar management', 'Data entry and admin tasks', 'Customer follow-ups', 'General business support'],
-                'privacyText' => 'By submitting this form, you agree to be contacted by Ceylon Talent Connect regarding your free trial enquiry. Your details will not be shared with third parties.'
-            ],
-            'thankYou' => [
-                'heading' => "You're on your way!",
-                'message' => 'Thanks! A member of our team will be in touch within 1 business day to get your trial started.',
-                'eta' => 'Within 1 business day'
-            ]
-        ];
+         // We populate with the default landing page data structure (jP)
+         $defaultData = [
+             'meta' => [
+                 'name' => ucwords(str_replace('-', ' ', $slug)),
+                 'title' => 'Free 2-Week VA Trial — Ceylon Talent Connect',
+                 'description' => 'Get a professional virtual assistant for your business, free for 2 weeks. No contract. No commitment.'
+             ],
+             'hero' => [
+                 'heading' => 'Get a professional virtual assistant for your business, free for 2 weeks.',
+                 'subheadline' => 'No contract. No commitment. Just seamless support from day one.'
+             ],
+             'form' => [
+                 'title' => 'Claim Your Free 2-Week Trial',
+                 'ctaLabel' => 'Claim My Free Trial',
+                 'businessTypes' => ['Medical / Allied Health', 'Legal / Professional Services', 'Trades / Construction', 'Real Estate', 'Retail / E-commerce', 'Other'],
+                 'helpOptions' => ['Email and inbox management', 'Scheduling and calendar management', 'Data entry and admin tasks', 'Customer follow-ups', 'General business support'],
+                 'privacyText' => 'By submitting this form, you agree to be contacted by Ceylon Talent Connect regarding your free trial enquiry. Your details will not be shared with third parties.'
+             ],
+             'thankYou' => [
+                 'heading' => "You're on your way!",
+                 'message' => 'Thanks! A member of our team will be in touch within 1 business day to get your trial started.',
+                 'eta' => 'Within 1 business day'
+             ]
+         ];
 
-        foreach ($defaultData as $key => $value) {
-            PageContent::create([
-                'page' => $pageName,
-                'key' => $key,
-                'value' => $value
-            ]);
-        }
+         foreach ($defaultData as $key => $value) {
+             PageContent::create([
+                 'page' => $pageName,
+                 'key' => $key,
+                 'value' => $value
+             ]);
+         }
 
-        return response()->json(['success' => true, 'slug' => $slug]);
-    }
+         return response()->json(['success' => true, 'slug' => $slug]);
+     }
 
     /**
      * Delete a landing page.
