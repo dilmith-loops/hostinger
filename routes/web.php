@@ -13,6 +13,7 @@ Route::get('/', function () {
 
 // Contact form
 Route::post('/api/contact', [ContactController::class, 'store']);
+Route::post('/api/leads', [ContactController::class, 'storeLead']);
 Route::get('/api/contact/enquiries', [ContactController::class, 'index']);
 
 // Public SEO endpoints (no auth required — read-only)
@@ -35,6 +36,11 @@ Route::prefix('api/cms')->group(function () {
     Route::get('/content/{page}', [CMSController::class, 'getContent']);
     Route::post('/content/save', [CMSController::class, 'saveContent']);
     Route::post('/upload', [CMSController::class, 'upload']);
+
+    // Landing pages APIs
+    Route::get('/landing-pages', [CMSController::class, 'getLandingPages']);
+    Route::post('/landing-pages', [CMSController::class, 'createLandingPage']);
+    Route::delete('/landing-pages/{slug}', [CMSController::class, 'deleteLandingPage']);
 
     // SEO management (admin only — auth checked inside controller)
     Route::get('/seo/all', [SeoController::class, 'allPages']);

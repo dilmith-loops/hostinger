@@ -58,4 +58,62 @@ class ContactController extends Controller
             'id'      => $enquiry->id,
         ], 201);
     }
+
+    /**
+     * Store landing page lead form submission.
+     */
+    public function storeLead(Request $request)
+    {
+        $validated = $request->validate([
+            'fullName'     => ['required', 'string', 'max:120'],
+            'businessName' => ['required', 'string', 'max:120'],
+            'phone'        => ['required', 'string', 'min:6', 'max:30', 'regex:/^[+\d\s()\-]+$/'],
+            'email'        => ['required', 'email', 'max:255'],
+            'businessType' => ['required', 'string', 'max:100'],
+            'helpWith'     => ['required', 'string', 'max:255'],
+            'campaign'     => ['required', 'string', 'max:100'],
+        ]);
+
+        $notes = "Business Name: " . $validated['businessName'] . "\nCampaign: " . $validated['campaign'];
+
+        $enquiry = ContactEnquiry::create([
+            'first_name'    => $validated['fullName'],
+            'last_name'     => '(Lead)',
+            'email'         => $validated['email'],
+            'phone'         => $validated['phone'],
+            'support'       => [$validated['helpWith']],
+            'business_type' => $validated['businessType'],
+            'timeline'      => 'Immediate (Landing Page)',
+            'notes'         => $notes,
+        ]);
+
+        // Construct email data to match Mailable expects
+        $emailData = [
+            'firstName'    => $validated['fullName'],
+            'lastName'     => '(Lead)',
+            'email'        => $validated['email'],
+            'phone'        => $validated['phone'],
+            'businessType' => $validated['businessType'] . ' (Business: ' . $validated['businessName'] . ')',
+            'support'      => [$validated['helpWith']],
+            'timeline'     => 'Immediate (Landing Page)',
+            'notes'         => 'Campaign Source: ' . $validated['campaign'],
+        ];
+
+        try {
+            // Confirmation to the submitter
+            Mail::to($validated['email'])->send(new EnquiryConfirmation($emailData));
+
+            // Notification to the business
+            Mail::to('info@ceylontalentconnect.com')
+                ->send(new EnquiryNotification($emailData));
+        } catch (\Exception $e) {
+            // Log mail failure but don't fail the response
+            \Log::error("Mail failed for landing page lead: " . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'id'      => $enquiry->id,
+        ], 201);
+    }
 }

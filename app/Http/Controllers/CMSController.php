@@ -145,4 +145,122 @@ class CMSController extends Controller
             'message' => 'No file uploaded.'
         ], 400);
     }
+
+    /**
+     * Get distinct landing pages list.
+     */
+    public function getLandingPages()
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $pages = PageContent::where('page', 'like', 'lp_%')->get()->groupBy('page');
+        $result = [];
+
+        foreach ($pages as $pageName => $contents) {
+            $slug = substr($pageName, 3); // Remove "lp_" prefix
+            $formTitle = 'Untitled';
+            $metaTitle = '';
+            foreach ($contents as $c) {
+                if ($c->key === 'form' && isset($c->value['title'])) {
+                    $formTitle = $c->value['title'];
+                }
+                if ($c->key === 'meta' && isset($c->value['title'])) {
+                    $metaTitle = $c->value['title'];
+                }
+            }
+            $result[] = [
+                'slug' => $slug,
+                'title' => $metaTitle ?: $formTitle,
+            ];
+        }
+
+        return response()->json($result);
+    }
+
+    /**
+     * Create a new landing page.
+     */
+    public function createLandingPage(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $validated = $request->validate([
+            'slug' => ['required', 'string', 'regex:/^[a-z0-9-]+$/', 'max:100'],
+        ]);
+
+        $slug = $validated['slug'];
+        $pageName = 'lp_' . $slug;
+
+        // Check if it already exists
+        if (PageContent::where('page', $pageName)->exists()) {
+            return response()->json(['error' => 'Landing page with this slug already exists.'], 422);
+        }
+
+        // We populate with the default landing page data structure (jP)
+        $defaultData = [
+            'meta' => [
+                'title' => 'Free 2-Week VA Trial — Ceylon Talent Connect',
+                'description' => 'Get a professional virtual assistant for your business, free for 2 weeks. No contract. No commitment.'
+            ],
+            'hero' => [
+                'eyebrow' => 'Limited time offer',
+                'heading' => 'Get a professional virtual assistant for your business, free for 2 weeks.',
+                'subheadline' => 'No contract. No commitment. Just seamless support from day one.',
+                'description' => 'Ceylon Talent Connect connects Australian businesses with talented virtual assistants who handle admin, emails, calls, customer queries and more, so you can focus on what matters most.',
+                'trustPoints' => ['No credit card required', 'No lock-in contract', 'Australian managed'],
+                'stats' => [
+                    ['value' => '7 days', 'label' => 'Average setup'],
+                    ['value' => '50+', 'label' => 'AU businesses'],
+                    ['value' => '100%', 'label' => 'Managed service']
+                ],
+                'phone' => '1300 241 103'
+            ],
+            'form' => [
+                'title' => 'Claim Your Free 2-Week Trial',
+                'ctaLabel' => 'Claim My Free Trial',
+                'businessTypes' => ['Medical / Allied Health', 'Legal / Professional Services', 'Trades / Construction', 'Real Estate', 'Retail / E-commerce', 'Other'],
+                'helpOptions' => ['Email and inbox management', 'Scheduling and calendar management', 'Data entry and admin tasks', 'Customer follow-ups', 'General business support'],
+                'privacyText' => 'By submitting this form, you agree to be contacted by Ceylon Talent Connect regarding your free trial enquiry. Your details will not be shared with third parties.'
+            ],
+            'thankYou' => [
+                'heading' => "You're on your way!",
+                'message' => 'Thanks! A member of our team will be in touch within 1 business day to get your trial started.',
+                'eta' => 'Within 1 business day'
+            ],
+            'footer' => [
+                'copyright' => '© ' . date('Y') . ' Ceylon Talent Connect Pty Ltd. All rights reserved.',
+                'linkedin' => 'https://www.linkedin.com/company/ceylon-talent-connect/',
+                'facebook' => 'https://www.facebook.com/p/Ceylontalentconnect-61574625940708/',
+                'instagram' => 'https://www.instagram.com/ceylon.talent.connect'
+            ]
+        ];
+
+        foreach ($defaultData as $key => $value) {
+            PageContent::create([
+                'page' => $pageName,
+                'key' => $key,
+                'value' => $value
+            ]);
+        }
+
+        return response()->json(['success' => true, 'slug' => $slug]);
+    }
+
+    /**
+     * Delete a landing page.
+     */
+    public function deleteLandingPage($slug)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        PageContent::where('page', 'lp_' . $slug)->delete();
+
+        return response()->json(['success' => true]);
+    }
 }
