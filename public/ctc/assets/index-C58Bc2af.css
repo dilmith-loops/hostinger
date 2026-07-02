@@ -136,3 +136,17 @@
   display: block;
   max-width: 100%;
 }
+
+.subpage-hero {
+  min-height: 320px;
+}
+@media (min-width: 768px) {
+  .subpage-hero {
+    min-height: 360px;
+  }
+}
+@media (min-width: 1024px) {
+  .subpage-hero {
+    min-height: 400px;
+  }
+}
