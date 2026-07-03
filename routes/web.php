@@ -6,10 +6,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\SitemapController;
 
-// Redirect / to /ctc
-Route::get('/', function () {
-    return redirect('/ctc');
-});
+// Serve React app directly from the root domain
 
 // Contact form
 Route::post('/api/contact', [ContactController::class, 'store']);
@@ -48,11 +45,12 @@ Route::prefix('api/cms')->group(function () {
     Route::post('/seo/page', [SeoController::class, 'savePage']);
 });
 
-// Wildcard routing to serve the TanStack prerendered static pages under /ctc
-Route::get('/ctc/{any?}', function ($any = '') {
+// Wildcard routing to serve the TanStack prerendered static pages under the root domain
+Route::get('/{any?}', function ($any = '') {
     // If requesting a specific file, check if it exists in public/ctc
     if (!empty($any)) {
-        $filePath = public_path("ctc/{$any}");
+        $cleanPath = str_starts_with($any, 'ctc/') ? substr($any, 4) : $any;
+        $filePath = public_path("ctc/{$cleanPath}");
         if (file_exists($filePath) && !is_dir($filePath)) {
             return response()->file($filePath);
         }
