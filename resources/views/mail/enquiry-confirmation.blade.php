@@ -14,7 +14,18 @@
         <!-- Header -->
         <tr>
           <td style="background:#2D3E50;padding:32px 48px;text-align:center;">
-            <img src="{{ $message->embed(public_path('logo.png')) }}" alt="Ceylon Talent Connect" width="180" style="display:block;margin:0 auto;max-width:180px;height:auto;" />
+            <table align="center" cellpadding="0" cellspacing="0" style="margin:0 auto;border-collapse:collapse;">
+              <tr>
+                <td style="vertical-align:middle;padding-right:12px;">
+                  <img src="{{ $message->embed(public_path('logo-icon.png')) }}" alt="Logo" width="20" height="45" style="display:block;border:0;width:20px;height:45px;" />
+                </td>
+                <td style="vertical-align:middle;text-align:left;line-height:1.1;">
+                  <span style="font-family:'Inter',Arial,sans-serif;font-size:11px;color:#ffffff;font-weight:400;letter-spacing:0.08em;display:block;text-transform:uppercase;opacity:0.85;">Ceylon</span>
+                  <span style="font-family:'Inter',Arial,sans-serif;font-size:18px;color:#ffffff;font-weight:800;letter-spacing:0.02em;display:block;margin-top:1px;">Talent</span>
+                  <span style="font-family:'Inter',Arial,sans-serif;font-size:18px;color:#ffffff;font-weight:800;letter-spacing:0.02em;display:block;margin-top:1px;">Connect</span>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
 

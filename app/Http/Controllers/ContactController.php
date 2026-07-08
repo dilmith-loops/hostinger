@@ -46,12 +46,16 @@ class ContactController extends Controller
             'notes'         => $data['notes'] ?? null,
         ]);
 
-        // Confirmation to the submitter
-        Mail::to($data['email'])->send(new EnquiryConfirmation($data));
+        try {
+            // Confirmation to the submitter
+            Mail::to($data['email'])->send(new EnquiryConfirmation($data));
 
-        // Notification to the business
-        Mail::to('info@ceylontalentconnect.com')
-            ->send(new EnquiryNotification($data));
+            // Notification to the business
+            Mail::to('info@ceylontalentconnect.com')
+                ->send(new EnquiryNotification($data));
+        } catch (\Exception $e) {
+            \Log::error("Mail failed for enquiry store: " . $e->getMessage());
+        }
 
         return response()->json([
             'success' => true,
