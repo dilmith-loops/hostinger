@@ -21,6 +21,7 @@ class SitemapController extends Controller
         ['loc' => '/contact',     'priority' => '0.7',  'changefreq' => 'monthly'],
         ['loc' => '/faq',         'priority' => '0.7',  'changefreq' => 'monthly'],
         ['loc' => '/sri-lanka',   'priority' => '0.8',  'changefreq' => 'monthly'],
+        ['loc' => '/testimonials', 'priority' => '0.8', 'changefreq' => 'weekly'],
     ];
 
     public function index(): Response
