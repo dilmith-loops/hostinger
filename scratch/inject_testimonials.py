@@ -202,19 +202,140 @@ cms_testimonials_code = '''m === "testimonials" && y.hero && u.jsxs(u.Fragment, 
           children: (y.videoReviews?.items || []).map((vItem, vIdx) => {
             return u.jsxs("div", {
               key: vItem.id || vIdx,
-              className: "bg-[#060D17] border border-[#1E3E62] rounded-xl p-4 space-y-3 relative",
+              draggable: true,
+              onDragStart: j => {
+                j.dataTransfer.setData("text/plain", vIdx.toString());
+                j.dataTransfer.effectAllowed = "move";
+              },
+              onDragOver: j => {
+                j.preventDefault();
+                j.dataTransfer.dropEffect = "move";
+              },
+              onDrop: j => {
+                j.preventDefault();
+                const srcIdx = parseInt(j.dataTransfer.getData("text/plain"), 10);
+                if (!isNaN(srcIdx) && srcIdx !== vIdx) {
+                  const items = [...(y.videoReviews?.items || [])];
+                  const [moved] = items.splice(srcIdx, 1);
+                  items.splice(vIdx, 0, moved);
+                  X("videoReviews", "items", items);
+                }
+              },
+              className: "bg-[#060D17] border border-[#1E3E62] hover:border-[#2A5282] rounded-xl p-4 space-y-3 relative transition",
               children: [
                 u.jsxs("div", {
-                  className: "flex items-center justify-between pb-2 border-b border-[#1E3E62]",
+                  className: "flex items-center justify-between pb-2 border-b border-[#1E3E62] gap-2 flex-wrap",
                   children: [
-                    u.jsxs("span", { className: "text-xs font-bold text-gray-300", children: ["Video #", vIdx + 1, " — ", vItem.title || "Video"] }),
-                    u.jsx("button", {
-                      onClick: () => {
-                        const newItems = (y.videoReviews?.items || []).filter((_, i) => i !== vIdx);
-                        X("videoReviews", "items", newItems);
-                      },
-                      className: "text-red-400 hover:text-red-300 text-xs font-semibold",
-                      children: "Remove"
+                    u.jsxs("div", {
+                      className: "flex items-center gap-2 min-w-0",
+                      children: [
+                        u.jsx("span", {
+                          className: "cursor-grab active:cursor-grabbing text-gray-400 hover:text-[#FF8E25] select-none text-xs px-1.5 py-0.5 rounded bg-[#1E3E62]/40 border border-[#1E3E62]/60 font-mono tracking-tighter",
+                          title: "Drag to reorder",
+                          children: "⠿⠿"
+                        }),
+                        vItem.thumbnail ? u.jsx("img", {
+                          src: vItem.thumbnail,
+                          alt: "",
+                          className: "w-6 h-6 rounded object-cover border border-[#1E3E62] shrink-0"
+                        }) : null,
+                        u.jsxs("span", {
+                          className: "text-xs font-bold text-gray-300 truncate",
+                          children: ["Video #", vIdx + 1, " — ", vItem.title || "Video"]
+                        })
+                      ]
+                    }),
+                    u.jsxs("div", {
+                      className: "flex items-center gap-1.5 shrink-0",
+                      children: [
+                        u.jsxs("div", {
+                          className: "flex items-center gap-1 bg-[#0B192C] border border-[#1E3E62] rounded px-2 py-0.5 text-xs text-gray-300",
+                          title: "Change position order directly",
+                          children: [
+                            u.jsx("span", { className: "text-[10px] text-gray-400 font-semibold uppercase tracking-wider", children: "Order:" }),
+                            u.jsx("select", {
+                              value: vIdx + 1,
+                              onChange: j => {
+                                const targetIdx = parseInt(j.target.value, 10) - 1;
+                                if (targetIdx === vIdx) return;
+                                const items = [...(y.videoReviews?.items || [])];
+                                const [moved] = items.splice(vIdx, 1);
+                                items.splice(targetIdx, 0, moved);
+                                X("videoReviews", "items", items);
+                              },
+                              className: "bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer",
+                              children: (y.videoReviews?.items || []).map((_, i) =>
+                                u.jsx("option", { key: i + 1, value: i + 1, className: "bg-[#060D17] text-white", children: `${i + 1}` }, i + 1)
+                              )
+                            })
+                          ]
+                        }),
+                        u.jsxs("button", {
+                          type: "button",
+                          disabled: vIdx === 0,
+                          onClick: () => {
+                            if (vIdx <= 0) return;
+                            const items = [...(y.videoReviews?.items || [])];
+                            const temp = items[vIdx];
+                            items[vIdx] = items[vIdx - 1];
+                            items[vIdx - 1] = temp;
+                            X("videoReviews", "items", items);
+                          },
+                          className: `px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 transition ${
+                            vIdx === 0
+                              ? "text-gray-600 bg-gray-900/30 cursor-not-allowed border border-transparent"
+                              : "text-gray-200 bg-[#1E3E62] hover:bg-[#FF8E25] hover:text-white cursor-pointer border border-[#1E3E62]"
+                          }`,
+                          title: "Move video up in order",
+                          children: [
+                            u.jsx("svg", {
+                              className: "w-3 h-3",
+                              fill: "none",
+                              stroke: "currentColor",
+                              viewBox: "0 0 24 24",
+                              children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2.5", d: "M5 15l7-7 7 7" })
+                            }),
+                            "Up"
+                          ]
+                        }),
+                        u.jsxs("button", {
+                          type: "button",
+                          disabled: vIdx === (y.videoReviews?.items || []).length - 1,
+                          onClick: () => {
+                            const items = [...(y.videoReviews?.items || [])];
+                            if (vIdx >= items.length - 1) return;
+                            const temp = items[vIdx];
+                            items[vIdx] = items[vIdx + 1];
+                            items[vIdx + 1] = temp;
+                            X("videoReviews", "items", items);
+                          },
+                          className: `px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 transition ${
+                            vIdx === (y.videoReviews?.items || []).length - 1
+                              ? "text-gray-600 bg-gray-900/30 cursor-not-allowed border border-transparent"
+                              : "text-gray-200 bg-[#1E3E62] hover:bg-[#FF8E25] hover:text-white cursor-pointer border border-[#1E3E62]"
+                          }`,
+                          title: "Move video down in order",
+                          children: [
+                            u.jsx("svg", {
+                              className: "w-3 h-3",
+                              fill: "none",
+                              stroke: "currentColor",
+                              viewBox: "0 0 24 24",
+                              children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2.5", d: "M19 9l-7 7-7-7" })
+                            }),
+                            "Down"
+                          ]
+                        }),
+                        u.jsx("button", {
+                          type: "button",
+                          onClick: () => {
+                            const newItems = (y.videoReviews?.items || []).filter((_, i) => i !== vIdx);
+                            X("videoReviews", "items", newItems);
+                          },
+                          className: "text-red-400 hover:text-red-300 text-xs font-semibold ml-1 px-2 py-1 rounded hover:bg-red-950/40 transition",
+                          children: "Remove"
+                        })
+                      ]
                     })
                   ]
                 }),
@@ -241,8 +362,13 @@ cms_testimonials_code = '''m === "testimonials" && y.hero && u.jsxs(u.Fragment, 
                       children: [
                         u.jsx("label", { className: "block text-[11px] text-gray-400 mb-1", children: "Thumbnail Image" }),
                         u.jsxs("div", {
-                          className: "flex gap-2",
+                          className: "flex gap-2 items-center",
                           children: [
+                            vItem.thumbnail ? u.jsx("img", {
+                              src: vItem.thumbnail,
+                              alt: "Preview",
+                              className: "h-9 w-9 rounded object-cover border border-[#1E3E62] shrink-0 bg-[#0B192C]"
+                            }) : null,
                             u.jsx("input", {
                               type: "text",
                               value: vItem.thumbnail || "",
@@ -355,8 +481,7 @@ cms_testimonials_code = '''m === "testimonials" && y.hero && u.jsxs(u.Fragment, 
                 })
               ]
             });
-          })
-        })
+          })        })
       ]
     }),
 
@@ -405,19 +530,140 @@ cms_testimonials_code = '''m === "testimonials" && y.hero && u.jsxs(u.Fragment, 
           children: (y.clientReviews?.items || []).map((cItem, cIdx) => {
             return u.jsxs("div", {
               key: cItem.id || cIdx,
-              className: "bg-[#060D17] border border-[#1E3E62] rounded-xl p-4 space-y-3 relative",
+              draggable: true,
+              onDragStart: j => {
+                j.dataTransfer.setData("text/plain", cIdx.toString());
+                j.dataTransfer.effectAllowed = "move";
+              },
+              onDragOver: j => {
+                j.preventDefault();
+                j.dataTransfer.dropEffect = "move";
+              },
+              onDrop: j => {
+                j.preventDefault();
+                const srcIdx = parseInt(j.dataTransfer.getData("text/plain"), 10);
+                if (!isNaN(srcIdx) && srcIdx !== cIdx) {
+                  const items = [...(y.clientReviews?.items || [])];
+                  const [moved] = items.splice(srcIdx, 1);
+                  items.splice(cIdx, 0, moved);
+                  X("clientReviews", "items", items);
+                }
+              },
+              className: "bg-[#060D17] border border-[#1E3E62] hover:border-[#2A5282] rounded-xl p-4 space-y-3 relative transition",
               children: [
                 u.jsxs("div", {
-                  className: "flex items-center justify-between pb-2 border-b border-[#1E3E62]",
+                  className: "flex items-center justify-between pb-2 border-b border-[#1E3E62] gap-2 flex-wrap",
                   children: [
-                    u.jsxs("span", { className: "text-xs font-bold text-gray-300", children: ["Review #", cIdx + 1, " — ", cItem.clientName || "Client"] }),
-                    u.jsx("button", {
-                      onClick: () => {
-                        const newItems = (y.clientReviews?.items || []).filter((_, i) => i !== cIdx);
-                        X("clientReviews", "items", newItems);
-                      },
-                      className: "text-red-400 hover:text-red-300 text-xs font-semibold",
-                      children: "Remove"
+                    u.jsxs("div", {
+                      className: "flex items-center gap-2 min-w-0",
+                      children: [
+                        u.jsx("span", {
+                          className: "cursor-grab active:cursor-grabbing text-gray-400 hover:text-[#FF8E25] select-none text-xs px-1.5 py-0.5 rounded bg-[#1E3E62]/40 border border-[#1E3E62]/60 font-mono tracking-tighter",
+                          title: "Drag to reorder",
+                          children: "⠿⠿"
+                        }),
+                        cItem.cardImage ? u.jsx("img", {
+                          src: cItem.cardImage,
+                          alt: "",
+                          className: "w-6 h-6 rounded object-cover border border-[#1E3E62] shrink-0"
+                        }) : null,
+                        u.jsxs("span", {
+                          className: "text-xs font-bold text-gray-300 truncate",
+                          children: ["Review #", cIdx + 1, " — ", cItem.clientName || "Client"]
+                        })
+                      ]
+                    }),
+                    u.jsxs("div", {
+                      className: "flex items-center gap-1.5 shrink-0",
+                      children: [
+                        u.jsxs("div", {
+                          className: "flex items-center gap-1 bg-[#0B192C] border border-[#1E3E62] rounded px-2 py-0.5 text-xs text-gray-300",
+                          title: "Change position order directly",
+                          children: [
+                            u.jsx("span", { className: "text-[10px] text-gray-400 font-semibold uppercase tracking-wider", children: "Order:" }),
+                            u.jsx("select", {
+                              value: cIdx + 1,
+                              onChange: j => {
+                                const targetIdx = parseInt(j.target.value, 10) - 1;
+                                if (targetIdx === cIdx) return;
+                                const items = [...(y.clientReviews?.items || [])];
+                                const [moved] = items.splice(cIdx, 1);
+                                items.splice(targetIdx, 0, moved);
+                                X("clientReviews", "items", items);
+                              },
+                              className: "bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer",
+                              children: (y.clientReviews?.items || []).map((_, i) =>
+                                u.jsx("option", { key: i + 1, value: i + 1, className: "bg-[#060D17] text-white", children: `${i + 1}` }, i + 1)
+                              )
+                            })
+                          ]
+                        }),
+                        u.jsxs("button", {
+                          type: "button",
+                          disabled: cIdx === 0,
+                          onClick: () => {
+                            if (cIdx <= 0) return;
+                            const items = [...(y.clientReviews?.items || [])];
+                            const temp = items[cIdx];
+                            items[cIdx] = items[cIdx - 1];
+                            items[cIdx - 1] = temp;
+                            X("clientReviews", "items", items);
+                          },
+                          className: `px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 transition ${
+                            cIdx === 0
+                              ? "text-gray-600 bg-gray-900/30 cursor-not-allowed border border-transparent"
+                              : "text-gray-200 bg-[#1E3E62] hover:bg-[#FF8E25] hover:text-white cursor-pointer border border-[#1E3E62]"
+                          }`,
+                          title: "Move review up in order",
+                          children: [
+                            u.jsx("svg", {
+                              className: "w-3 h-3",
+                              fill: "none",
+                              stroke: "currentColor",
+                              viewBox: "0 0 24 24",
+                              children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2.5", d: "M5 15l7-7 7 7" })
+                            }),
+                            "Up"
+                          ]
+                        }),
+                        u.jsxs("button", {
+                          type: "button",
+                          disabled: cIdx === (y.clientReviews?.items || []).length - 1,
+                          onClick: () => {
+                            const items = [...(y.clientReviews?.items || [])];
+                            if (cIdx >= items.length - 1) return;
+                            const temp = items[cIdx];
+                            items[cIdx] = items[cIdx + 1];
+                            items[cIdx + 1] = temp;
+                            X("clientReviews", "items", items);
+                          },
+                          className: `px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 transition ${
+                            cIdx === (y.clientReviews?.items || []).length - 1
+                              ? "text-gray-600 bg-gray-900/30 cursor-not-allowed border border-transparent"
+                              : "text-gray-200 bg-[#1E3E62] hover:bg-[#FF8E25] hover:text-white cursor-pointer border border-[#1E3E62]"
+                          }`,
+                          title: "Move review down in order",
+                          children: [
+                            u.jsx("svg", {
+                              className: "w-3 h-3",
+                              fill: "none",
+                              stroke: "currentColor",
+                              viewBox: "0 0 24 24",
+                              children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2.5", d: "M19 9l-7 7-7-7" })
+                            }),
+                            "Down"
+                          ]
+                        }),
+                        u.jsx("button", {
+                          type: "button",
+                          onClick: () => {
+                            const newItems = (y.clientReviews?.items || []).filter((_, i) => i !== cIdx);
+                            X("clientReviews", "items", newItems);
+                          },
+                          className: "text-red-400 hover:text-red-300 text-xs font-semibold ml-1 px-2 py-1 rounded hover:bg-red-950/40 transition",
+                          children: "Remove"
+                        })
+                      ]
                     })
                   ]
                 }),
@@ -428,8 +674,13 @@ cms_testimonials_code = '''m === "testimonials" && y.hero && u.jsxs(u.Fragment, 
                       children: [
                         u.jsx("label", { className: "block text-[11px] text-gray-400 mb-1", children: "Review Graphic Card Image" }),
                         u.jsxs("div", {
-                          className: "flex gap-2",
+                          className: "flex gap-2 items-center",
                           children: [
+                            cItem.cardImage ? u.jsx("img", {
+                              src: cItem.cardImage,
+                              alt: "Preview",
+                              className: "h-9 w-9 rounded object-cover border border-[#1E3E62] shrink-0 bg-[#0B192C]"
+                            }) : null,
                             u.jsx("input", {
                               type: "text",
                               value: cItem.cardImage || "",
@@ -528,8 +779,7 @@ cms_testimonials_code = '''m === "testimonials" && y.hero && u.jsxs(u.Fragment, 
                 })
               ]
             });
-          })
-        })
+          })        })
       ]
     })
   ]
