@@ -555,7 +555,721 @@ Sitemap: https://ceylontalentconnect.com/sitemap.xml`}), u.jsxs("div", { classNa
     ]
   })
 } function sP() {
-  const [n, e] = F.useState(!1), [t, s] = F.useState(null), [r, a] = F.useState(""), [l, d] = F.useState(""), [f, p] = F.useState(!1), [m, g] = F.useState("home"), [y, v] = F.useState({}), [w, S] = F.useState(!1), [k, E] = F.useState(!1), [M, A] = F.useState(!1), [T, D] = F.useState(!1), [U, L] = F.useState([]), [z, J] = F.useState(!1), [se, fe] = F.useState({}), [showPassword, setShowPassword] = F.useState(!1), [landingPages, setLandingPages] = F.useState([]), [loadingLps, setLoadingLps] = F.useState(!1), de = F.useCallback(async () => { try { const j = await fetch(`${wi}/auth/me`); if (j.ok) { const _ = await j.json(); _.authenticated && s(_.user) } } catch (j) { console.error("Auth check failed:", j) } finally { e(!0) } }, []); F.useEffect(() => { de() }, [de]); const Ee = F.useCallback(async j => { S(!0); try { const _ = await fetch(`${wi}/content/${j}`); if (!_.ok) throw new Error("Failed to load content"); const $ = await _.json(), qe = { ...(j.startsWith("lp_") ? jP : (gy[j] || {})) }; Object.keys($).forEach($e => { $[$e] !== void 0 && $[$e] !== null && (qe[$e] = $[$e]) }); if (j.startsWith("lp_")) { qe.meta = qe.meta || {}; qe.meta.slug = j.replace("lp_", ""); } v(qe), E(!1) } catch (_) { Rn.error(`Error loading page content for ${j}`), console.error(_), v(gy[j] || {}) } finally { S(!1) } }, []), ke = F.useCallback(async () => { J(!0); try { const _ = await fetch("/api/contact/enquiries"); if (!_.ok) throw new Error("Failed to load enquiries"); L(await _.json()) } catch { Rn.error("Failed to load enquiries") } finally { J(!1) } }, []), te = F.useCallback(j => { v({}), g(j), fe({}) }, []); F.useEffect(() => { t && (m === "enquiries" ? (E(!1), ke()) : Ee(m)) }, [m, t, Ee, ke]); const I = async j => { j.preventDefault(), p(!0); try { const _ = await fetch(`${wi}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: r, password: l }) }); if (_.ok) { const $ = await _.json(); s($.user), Rn.success("Successfully logged in!") } else { const $ = await _.json(); Rn.error($.message || "Invalid credentials") } } catch { Rn.error("Failed to authenticate") } finally { p(!1) } }, K = async () => { try { await fetch(`${wi}/auth/logout`, { method: "POST" }), s(null), Rn.success("Logged out successfully") } catch { Rn.error("Logout failed") } }, he = async () => { A(!0); try { const res = await fetch(`${wi}/content/save`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ page: m, data: y }) }); if (res.ok) { const data = await res.json(); Rn.success("Changes saved successfully!"), E(!1); if (data.newPage && data.newPage !== m) { g(data.newPage); loadLandingPages(); Ee(data.newPage); } } else { const err = await res.json().catch(() => ({})); throw new Error(err.error || "Save request failed"); } } catch (err) { Rn.error(err instanceof Error ? err.message : "Failed to save changes.") } finally { A(!1) } }, X = (j, _, $) => { v(ge => { const qe = { ...ge[j], [_]: $ }, $e = { ...ge, [j]: qe }; return E(!0), $e }) }, le = (j, _, $, ge) => { v(qe => { const $e = [...qe[j] || []]; $e[_] = { ...$e[_], [$]: ge }; const wn = { ...qe, [j]: $e }; return E(!0), wn }) }, O = (j, _, $) => { v(ge => { const qe = [...ge[j] || []], $e = $ === "up" ? _ - 1 : _ + 1; if ($e < 0 || $e >= qe.length) return ge; const wn = qe[_]; return qe[_] = qe[$e], qe[$e] = wn, E(!0), { ...ge, [j]: qe } }) }, W = (j, _) => { v($ => { const ge = [...$[j] || []]; return ge.splice(_, 1), E(!0), { ...$, [j]: ge } }) }, Z = (j, _) => { v($ => { const ge = [...$[j] || []]; return ge.push({ ..._ }), E(!0), { ...$, [j]: ge } }) }, re = j => { v(_ => { const $ = [..._.posts || []], ge = { ...$[j] }, qe = _.featured ? { ..._.featured } : null; return $.splice(j, 1), qe && $.unshift(qe), E(!0), { ..._, featured: ge, posts: $ } }), fe({ featured: !0 }) }, ne = async (j, _, $, ge) => { const qe = new FormData; qe.append("file", ge); const $e = fetch(`${wi}/upload`, { method: "POST", body: qe }).then(async wn => { if (!wn.ok) throw new Error("Upload failed"); const Lt = await wn.json(); return _ === null ? X(j, $, Lt.url) : le(j, _, $, Lt.url), Lt.url }); Rn.promise($e, { loading: "Uploading image...", success: "Image uploaded successfully!", error: "Failed to upload image." }) }; const loadLandingPages = F.useCallback(async () => { setLoadingLps(!0); try { const res = await fetch("/api/cms/landing-pages"); if (res.ok) setLandingPages(await res.json()) } catch { Rn.error("Failed to load landing pages") } finally { setLoadingLps(!1) } }, []), createLandingPage = async slug => { try { const res = await fetch("/api/cms/landing-pages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug }) }); if (res.ok) { Rn.success("Landing page created successfully!"); loadLandingPages(); te("lp_" + slug) } else { const err = await res.json(); Rn.error(err.error || "Failed to create landing page") } } catch { Rn.error("Failed to create landing page") } }, deleteLandingPage = async slug => { if (!confirm(`Are you sure you want to delete landing page "/lp/${slug}"? This will delete all content and cannot be undone.`)) return; try { const res = await fetch(`/api/cms/landing-pages/${slug}`, { method: "DELETE" }); if (res.ok) { Rn.success("Landing page deleted successfully!"); loadLandingPages(); te("landing_pages") } else { Rn.error("Failed to delete landing page") } } catch { Rn.error("Failed to delete landing page") } }, updateHeroStat = (idx, field, value) => { const newStats = [...y.hero.stats || []]; newStats[idx] = { ...newStats[idx], [field]: value }; X("hero", "stats", newStats) }; F.useEffect(() => { t && m === "landing_pages" && loadLandingPages() }, [m, t, loadLandingPages]); if (!n) return u.jsx("div", { className: "min-h-screen bg-[#0B192C] flex items-center justify-center text-white font-sans", children: u.jsxs("div", { className: "flex flex-col items-center gap-3", children: [u.jsx(Er, { className: "h-10 w-10 text-[#FF8E25] animate-spin" }), u.jsx("p", { className: "text-sm text-gray-400", children: "Loading CMS..." })] }) }); if (!t) return u.jsxs("div", { className: "min-h-screen bg-[#060D17] text-white flex items-center justify-center p-4 font-sans relative overflow-hidden", children: [u.jsx("div", { className: "absolute top-1/4 left-1/4 h-[350px] w-[350px] rounded-full bg-[#FF8E25]/10 blur-3xl" }), u.jsx("div", { className: "absolute bottom-1/4 right-1/4 h-[350px] w-[350px] rounded-full bg-[#1E3E62]/30 blur-3xl" }), u.jsxs("div", { className: "relative w-full max-w-md bg-[#0B192C] border border-[#1E3E62] rounded-2xl shadow-2xl p-8 backdrop-blur-md", children: [u.jsxs("div", { className: "flex flex-col items-center mb-8", children: [u.jsxs("h1", { className: "text-2xl font-bold tracking-tight text-white mt-4 flex items-center gap-2", children: [u.jsx(c2, { className: "h-6 w-6 text-[#FF8E25]" }), "CTC CMS Control"] }), u.jsx("p", { className: "text-xs text-gray-400 mt-2", children: "Sign in to edit website components" })] }), u.jsxs("form", { onSubmit: I, className: "space-y-5", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-2", children: "Email Address" }), u.jsx("input", { type: "email", value: r, onChange: j => a(j.target.value), className: "w-full bg-[#0E243E] border border-[#1E3E62] rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#FF8E25] transition", placeholder: "user@example.com", required: !0 })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-2", children: "Password" }), u.jsxs("div", { className: "relative", children: [u.jsx("input", { type: showPassword ? "text" : "password", value: l, onChange: j => d(j.target.value), className: "w-full bg-[#0E243E] border border-[#1E3E62] rounded-lg pl-4 pr-12 py-3 text-sm text-white focus:outline-none focus:border-[#FF8E25] transition", placeholder: "••••••••", required: !0 }), u.jsx("button", { type: "button", onClick: () => setShowPassword(!showPassword), className: "absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#FF8E25] focus:outline-none transition-colors", children: showPassword ? u.jsx(q5, { className: "h-4 w-4" }) : u.jsx(Hd, { className: "h-4 w-4" }) })] })] }), u.jsx("button", { type: "submit", disabled: f, className: "w-full py-3.5 bg-[#FF8E25] text-white font-semibold rounded-lg hover:bg-[#ff9c3a] active:scale-[0.99] transition duration-200 flex items-center justify-center gap-2 mt-2", children: f ? u.jsx(Er, { className: "h-5 w-5 animate-spin" }) : u.jsxs(u.Fragment, { children: [u.jsx(c2, { className: "h-4 w-4" }), "Sign In"] }) })] }), u.jsx("div", { className: "mt-6 pt-6 border-t border-[#1E3E62]/50 text-center text-xs text-gray-500", children: "Secure admin login. Credentials seeded by migration." })] }), u.jsx(R2, { theme: "dark", position: "top-right", closeButton: !0 })] }); const EnquiriesTable = ({ enquiries, l2icon }) => {
+  const [n, e] = F.useState(!1), [t, s] = F.useState(null), [r, a] = F.useState(""), [l, d] = F.useState(""), [f, p] = F.useState(!1), [m, g] = F.useState("home"), [y, v] = F.useState({}), [w, S] = F.useState(!1), [k, E] = F.useState(!1), [M, A] = F.useState(!1), [T, D] = F.useState(!1), [U, L] = F.useState([]), [z, J] = F.useState(!1), [se, fe] = F.useState({}), [showPassword, setShowPassword] = F.useState(!1), [landingPages, setLandingPages] = F.useState([]), [loadingLps, setLoadingLps] = F.useState(!1), de = F.useCallback(async () => { try { const j = await fetch(`${wi}/auth/me`); if (j.ok) { const _ = await j.json(); _.authenticated && s(_.user) } } catch (j) { console.error("Auth check failed:", j) } finally { e(!0) } }, []); F.useEffect(() => { de() }, [de]); const Ee = F.useCallback(async j => { S(!0); try { const _ = await fetch(`${wi}/content/${j}`); if (!_.ok) throw new Error("Failed to load content"); const $ = await _.json(), qe = { ...(j.startsWith("lp_") ? jP : (gy[j] || {})) }; Object.keys($).forEach($e => { $[$e] !== void 0 && $[$e] !== null && (qe[$e] = $[$e]) }); if (j.startsWith("lp_")) { qe.meta = qe.meta || {}; qe.meta.slug = j.replace("lp_", ""); } v(qe), E(!1) } catch (_) { Rn.error(`Error loading page content for ${j}`), console.error(_), v(gy[j] || {}) } finally { S(!1) } }, []), ke = F.useCallback(async () => { J(!0); try { const _ = await fetch("/api/contact/enquiries"); if (!_.ok) throw new Error("Failed to load enquiries"); L(await _.json()) } catch { Rn.error("Failed to load enquiries") } finally { J(!1) } }, []), te = F.useCallback(j => { v({}), g(j), fe({}) }, []); F.useEffect(() => { t && (m === "enquiries" ? (E(!1), ke()) : m === "users" ? (E(!1), S(!1)) : m === "seo" ? (E(!1), S(!1)) : Ee(m)) }, [m, t, Ee, ke]); const I = async j => { j.preventDefault(), p(!0); try { const _ = await fetch(`${wi}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: r, password: l }) }); if (_.ok) { const $ = await _.json(); s($.user), Rn.success("Successfully logged in!") } else { const $ = await _.json(); Rn.error($.message || "Invalid credentials") } } catch { Rn.error("Failed to authenticate") } finally { p(!1) } }, K = async () => { try { await fetch(`${wi}/auth/logout`, { method: "POST" }), s(null), Rn.success("Logged out successfully") } catch { Rn.error("Logout failed") } }, he = async () => { A(!0); try { const res = await fetch(`${wi}/content/save`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ page: m, data: y }) }); if (res.ok) { const data = await res.json(); Rn.success("Changes saved successfully!"), E(!1); if (data.newPage && data.newPage !== m) { g(data.newPage); loadLandingPages(); Ee(data.newPage); } } else { const err = await res.json().catch(() => ({})); throw new Error(err.error || "Save request failed"); } } catch (err) { Rn.error(err instanceof Error ? err.message : "Failed to save changes.") } finally { A(!1) } }, X = (j, _, $) => { v(ge => { const qe = { ...ge[j], [_]: $ }, $e = { ...ge, [j]: qe }; return E(!0), $e }) }, le = (j, _, $, ge) => { v(qe => { const $e = [...qe[j] || []]; $e[_] = { ...$e[_], [$]: ge }; const wn = { ...qe, [j]: $e }; return E(!0), wn }) }, O = (j, _, $) => { v(ge => { const qe = [...ge[j] || []], $e = $ === "up" ? _ - 1 : _ + 1; if ($e < 0 || $e >= qe.length) return ge; const wn = qe[_]; return qe[_] = qe[$e], qe[$e] = wn, E(!0), { ...ge, [j]: qe } }) }, W = (j, _) => { v($ => { const ge = [...$[j] || []]; return ge.splice(_, 1), E(!0), { ...$, [j]: ge } }) }, Z = (j, _) => { v($ => { const ge = [...$[j] || []]; return ge.push({ ..._ }), E(!0), { ...$, [j]: ge } }) }, re = j => { v(_ => { const $ = [..._.posts || []], ge = { ...$[j] }, qe = _.featured ? { ..._.featured } : null; return $.splice(j, 1), qe && $.unshift(qe), E(!0), { ..._, featured: ge, posts: $ } }), fe({ featured: !0 }) }, ne = async (j, _, $, ge) => { const qe = new FormData; qe.append("file", ge); const $e = fetch(`${wi}/upload`, { method: "POST", body: qe }).then(async wn => { if (!wn.ok) throw new Error("Upload failed"); const Lt = await wn.json(); return _ === null ? X(j, $, Lt.url) : le(j, _, $, Lt.url), Lt.url }); Rn.promise($e, { loading: "Uploading image...", success: "Image uploaded successfully!", error: "Failed to upload image." }) }; const loadLandingPages = F.useCallback(async () => { setLoadingLps(!0); try { const res = await fetch("/api/cms/landing-pages"); if (res.ok) setLandingPages(await res.json()) } catch { Rn.error("Failed to load landing pages") } finally { setLoadingLps(!1) } }, []), createLandingPage = async slug => { try { const res = await fetch("/api/cms/landing-pages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug }) }); if (res.ok) { Rn.success("Landing page created successfully!"); loadLandingPages(); te("lp_" + slug) } else { const err = await res.json(); Rn.error(err.error || "Failed to create landing page") } } catch { Rn.error("Failed to create landing page") } }, deleteLandingPage = async slug => { if (!confirm(`Are you sure you want to delete landing page "/lp/${slug}"? This will delete all content and cannot be undone.`)) return; try { const res = await fetch(`/api/cms/landing-pages/${slug}`, { method: "DELETE" }); if (res.ok) { Rn.success("Landing page deleted successfully!"); loadLandingPages(); te("landing_pages") } else { Rn.error("Failed to delete landing page") } } catch { Rn.error("Failed to delete landing page") } }, updateHeroStat = (idx, field, value) => { const newStats = [...y.hero.stats || []]; newStats[idx] = { ...newStats[idx], [field]: value }; X("hero", "stats", newStats) }; F.useEffect(() => { t && m === "landing_pages" && loadLandingPages() }, [m, t, loadLandingPages]); if (!n) return u.jsx("div", { className: "min-h-screen bg-[#0B192C] flex items-center justify-center text-white font-sans", children: u.jsxs("div", { className: "flex flex-col items-center gap-3", children: [u.jsx(Er, { className: "h-10 w-10 text-[#FF8E25] animate-spin" }), u.jsx("p", { className: "text-sm text-gray-400", children: "Loading CMS..." })] }) }); if (!t) return u.jsxs("div", { className: "min-h-screen bg-[#060D17] text-white flex items-center justify-center p-4 font-sans relative overflow-hidden", children: [u.jsx("div", { className: "absolute top-1/4 left-1/4 h-[350px] w-[350px] rounded-full bg-[#FF8E25]/10 blur-3xl" }), u.jsx("div", { className: "absolute bottom-1/4 right-1/4 h-[350px] w-[350px] rounded-full bg-[#1E3E62]/30 blur-3xl" }), u.jsxs("div", { className: "relative w-full max-w-md bg-[#0B192C] border border-[#1E3E62] rounded-2xl shadow-2xl p-8 backdrop-blur-md", children: [u.jsxs("div", { className: "flex flex-col items-center mb-8", children: [u.jsxs("h1", { className: "text-2xl font-bold tracking-tight text-white mt-4 flex items-center gap-2", children: [u.jsx(c2, { className: "h-6 w-6 text-[#FF8E25]" }), "CTC CMS Control"] }), u.jsx("p", { className: "text-xs text-gray-400 mt-2", children: "Sign in to edit website components" })] }), u.jsxs("form", { onSubmit: I, className: "space-y-5", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-2", children: "Email Address" }), u.jsx("input", { type: "email", value: r, onChange: j => a(j.target.value), className: "w-full bg-[#0E243E] border border-[#1E3E62] rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#FF8E25] transition", placeholder: "user@example.com", required: !0 })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-2", children: "Password" }), u.jsxs("div", { className: "relative", children: [u.jsx("input", { type: showPassword ? "text" : "password", value: l, onChange: j => d(j.target.value), className: "w-full bg-[#0E243E] border border-[#1E3E62] rounded-lg pl-4 pr-12 py-3 text-sm text-white focus:outline-none focus:border-[#FF8E25] transition", placeholder: "••••••••", required: !0 }), u.jsx("button", { type: "button", onClick: () => setShowPassword(!showPassword), className: "absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#FF8E25] focus:outline-none transition-colors", children: showPassword ? u.jsx(q5, { className: "h-4 w-4" }) : u.jsx(Hd, { className: "h-4 w-4" }) })] })] }), u.jsx("button", { type: "submit", disabled: f, className: "w-full py-3.5 bg-[#FF8E25] text-white font-semibold rounded-lg hover:bg-[#ff9c3a] active:scale-[0.99] transition duration-200 flex items-center justify-center gap-2 mt-2", children: f ? u.jsx(Er, { className: "h-5 w-5 animate-spin" }) : u.jsxs(u.Fragment, { children: [u.jsx(c2, { className: "h-4 w-4" }), "Sign In"] }) })] }), u.jsx("div", { className: "mt-6 pt-6 border-t border-[#1E3E62]/50 text-center text-xs text-gray-500", children: "Secure admin login. Credentials seeded by migration." })] }), u.jsx(R2, { theme: "dark", position: "top-right", closeButton: !0 })] }); 
+const AdminUsersManager = ({ currentUser }) => {
+  const [users, setUsers] = F.useState([]);
+  const [loading, setLoading] = F.useState(true);
+  const [showCreateModal, setShowCreateModal] = F.useState(false);
+  const [editUser, setEditUser] = F.useState(null);
+  const [passwordUser, setPasswordUser] = F.useState(null);
+  const [deleteTarget, setDeleteTarget] = F.useState(null);
+
+  const [createForm, setCreateForm] = F.useState({ name: "", email: "", password: "", confirmPassword: "" });
+  const [editForm, setEditForm] = F.useState({ name: "", email: "" });
+  const [passwordForm, setPasswordForm] = F.useState({ password: "", confirmPassword: "" });
+  const [showPassword, setShowPassword] = F.useState(false);
+  const [submitting, setSubmitting] = F.useState(false);
+  const [formError, setFormError] = F.useState("");
+
+  const loadUsers = F.useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${wi}/users`);
+      if (!res.ok) throw new Error("Failed to load users");
+      const data = await res.json();
+      setUsers(data.users || []);
+    } catch (e) {
+      Rn.error("Failed to load admin users");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  F.useEffect(() => { loadUsers(); }, [loadUsers]);
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    setFormError("");
+    if (!createForm.name.trim() || !createForm.email.trim() || !createForm.password) {
+      setFormError("All fields are required.");
+      return;
+    }
+    if (createForm.password.length < 8) {
+      setFormError("Password must be at least 8 characters long.");
+      return;
+    }
+    if (createForm.password !== createForm.confirmPassword) {
+      setFormError("Passwords do not match.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${wi}/users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: createForm.name.trim(),
+          email: createForm.email.trim(),
+          password: createForm.password,
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || data.error || (data.errors ? Object.values(data.errors).flat().join(", ") : "Failed to create admin user"));
+      }
+      Rn.success(data.message || "Admin user created successfully!");
+      setShowCreateModal(false);
+      setCreateForm({ name: "", email: "", password: "", confirmPassword: "" });
+      loadUsers();
+    } catch (err) {
+      setFormError(err.message);
+      Rn.error(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEdit = async (e) => {
+    e.preventDefault();
+    setFormError("");
+    if (!editForm.name.trim() || !editForm.email.trim()) {
+      setFormError("Name and email are required.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${wi}/users/${editUser.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editForm.name.trim(),
+          email: editForm.email.trim(),
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || data.error || (data.errors ? Object.values(data.errors).flat().join(", ") : "Failed to update admin user"));
+      }
+      Rn.success(data.message || "Admin user updated successfully!");
+      setEditUser(null);
+      loadUsers();
+    } catch (err) {
+      setFormError(err.message);
+      Rn.error(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handlePassword = async (e) => {
+    e.preventDefault();
+    setFormError("");
+    if (!passwordForm.password) {
+      setFormError("New password is required.");
+      return;
+    }
+    if (passwordForm.password.length < 8) {
+      setFormError("Password must be at least 8 characters long.");
+      return;
+    }
+    if (passwordForm.password !== passwordForm.confirmPassword) {
+      setFormError("Passwords do not match.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${wi}/users/${passwordUser.id}/password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          password: passwordForm.password,
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || data.error || (data.errors ? Object.values(data.errors).flat().join(", ") : "Failed to update password"));
+      }
+      Rn.success(data.message || "Password updated successfully!");
+      setPasswordUser(null);
+      setPasswordForm({ password: "", confirmPassword: "" });
+    } catch (err) {
+      setFormError(err.message);
+      Rn.error(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${wi}/users/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || data.message || "Failed to delete admin user");
+      }
+      Rn.success(data.message || "Admin user deleted successfully!");
+      setDeleteTarget(null);
+      loadUsers();
+    } catch (err) {
+      Rn.error(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return u.jsxs("div", {
+    className: "space-y-6 animate-in fade-in duration-200",
+    children: [
+      u.jsxs("div", {
+        className: "flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6",
+        children: [
+          u.jsxs("div", {
+            className: "space-y-1",
+            children: [
+              u.jsxs("div", {
+                className: "flex items-center gap-2.5",
+                children: [
+                  u.jsx("div", {
+                    className: "p-2 bg-[#FF8E25]/15 border border-[#FF8E25]/30 rounded-lg text-[#FF8E25]",
+                    children: u.jsx("svg", { className: "h-5 w-5", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" }) })
+                  }),
+                  u.jsx("h3", { className: "text-lg font-bold text-white", children: "Admin Users Management" }),
+                  u.jsxs("span", {
+                    className: "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#1E3E62] text-gray-300",
+                    children: [users.length, " ", users.length === 1 ? "Admin" : "Admins"]
+                  })
+                ]
+              }),
+              u.jsx("p", {
+                className: "text-xs text-gray-400 pl-10",
+                children: "Manage team members with full administrative privileges to the CTC CMS."
+              })
+            ]
+          }),
+          u.jsxs("div", {
+            className: "flex items-center gap-3 self-end sm:self-auto",
+            children: [
+              u.jsxs("button", {
+                type: "button",
+                onClick: loadUsers,
+                disabled: loading,
+                className: "px-3 py-2 bg-[#1E3E62]/60 hover:bg-[#1E3E62] border border-[#1E3E62] text-gray-300 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition disabled:opacity-50",
+                children: [
+                  u.jsx("svg", { className: `h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`, fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" }) }),
+                  "Refresh"
+                ]
+              }),
+              u.jsxs("button", {
+                type: "button",
+                onClick: () => { setFormError(""); setCreateForm({ name: "", email: "", password: "", confirmPassword: "" }); setShowCreateModal(true); },
+                className: "px-4 py-2 bg-[#FF8E25] hover:bg-[#ff9c3a] active:scale-[0.98] text-white rounded-lg text-xs font-bold flex items-center gap-2 shadow-lg shadow-[#FF8E25]/20 transition",
+                children: [
+                  u.jsx("svg", { className: "h-4 w-4", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" }) }),
+                  "Add New Admin"
+                ]
+              })
+            ]
+          })
+        ]
+      }),
+
+      u.jsx("div", {
+        className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl overflow-hidden shadow-xl",
+        children: loading && users.length === 0 ? u.jsxs("div", {
+          className: "p-12 flex flex-col items-center justify-center gap-3",
+          children: [
+            u.jsx(Er, { className: "h-8 w-8 text-[#FF8E25] animate-spin" }),
+            u.jsx("p", { className: "text-xs text-gray-400 font-medium", children: "Loading admin accounts..." })
+          ]
+        }) : users.length === 0 ? u.jsxs("div", {
+          className: "p-12 text-center space-y-3",
+          children: [
+            u.jsx("p", { className: "text-sm text-gray-300 font-semibold", children: "No admin users found." }),
+            u.jsx("p", { className: "text-xs text-gray-500", children: "Click 'Add New Admin' above to register your first administrator account." })
+          ]
+        }) : u.jsx("div", {
+          className: "overflow-x-auto",
+          children: u.jsxs("table", {
+            className: "w-full text-left text-xs border-collapse",
+            children: [
+              u.jsx("thead", {
+                className: "bg-[#060D17]/80 border-b border-[#1E3E62] text-gray-400 uppercase tracking-wider font-semibold",
+                children: u.jsxs("tr", {
+                  children: [
+                    u.jsx("th", { className: "py-3.5 px-6", children: "Administrator" }),
+                    u.jsx("th", { className: "py-3.5 px-6", children: "Email Address" }),
+                    u.jsx("th", { className: "py-3.5 px-6", children: "Created On" }),
+                    u.jsx("th", { className: "py-3.5 px-6 text-right", children: "Actions" })
+                  ]
+                })
+              }),
+              u.jsx("tbody", {
+                className: "divide-y divide-[#1E3E62]/40 text-gray-200",
+                children: users.map((user) => {
+                  const isCurrent = currentUser && (currentUser.id === user.id || currentUser.email === user.email);
+                  const initials = (user.name || "A").split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+                  const dateStr = user.created_at ? new Date(user.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—";
+
+                  return u.jsxs("tr", {
+                    className: "hover:bg-[#0E243E]/50 transition",
+                    children: [
+                      u.jsx("td", {
+                        className: "py-4 px-6 font-medium text-white",
+                        children: u.jsxs("div", {
+                          className: "flex items-center gap-3",
+                          children: [
+                            u.jsx("div", {
+                              className: "h-9 w-9 rounded-full bg-gradient-to-br from-[#1E3E62] to-[#0A192F] border border-[#1E3E62] flex items-center justify-center text-xs font-bold text-[#FF8E25]",
+                              children: initials
+                            }),
+                            u.jsxs("div", {
+                              children: [
+                                u.jsxs("div", {
+                                  className: "flex items-center gap-2",
+                                  children: [
+                                    u.jsx("span", { className: "font-semibold text-white", children: user.name }),
+                                    isCurrent && u.jsx("span", { className: "px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FF8E25]/20 text-[#FF8E25] border border-[#FF8E25]/30", children: "You" })
+                                  ]
+                                }),
+                                u.jsx("span", { className: "text-[11px] text-gray-400 font-normal", children: "Administrator" })
+                              ]
+                            })
+                          ]
+                        })
+                      }),
+                      u.jsx("td", {
+                        className: "py-4 px-6 text-gray-300 font-mono text-[11px]",
+                        children: user.email
+                      }),
+                      u.jsx("td", {
+                        className: "py-4 px-6 text-gray-400",
+                        children: dateStr
+                      }),
+                      u.jsx("td", {
+                        className: "py-4 px-6 text-right",
+                        children: u.jsxs("div", {
+                          className: "flex items-center justify-end gap-2",
+                          children: [
+                            u.jsxs("button", {
+                              type: "button",
+                              onClick: () => { setFormError(""); setPasswordForm({ password: "", confirmPassword: "" }); setPasswordUser(user); },
+                              title: "Change password for this user",
+                              className: "px-2.5 py-1.5 bg-[#1E3E62]/40 hover:bg-[#1E3E62] border border-[#1E3E62] text-blue-300 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition",
+                              children: [
+                                u.jsx("svg", { className: "h-3.5 w-3.5 text-blue-400", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" }) }),
+                                "Password"
+                              ]
+                            }),
+                            u.jsxs("button", {
+                              type: "button",
+                              onClick: () => { setFormError(""); setEditForm({ name: user.name, email: user.email }); setEditUser(user); },
+                              title: "Edit name and email",
+                              className: "px-2.5 py-1.5 bg-[#1E3E62]/40 hover:bg-[#1E3E62] border border-[#1E3E62] text-gray-300 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition",
+                              children: [
+                                u.jsx("svg", { className: "h-3.5 w-3.5 text-gray-400", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" }) }),
+                                "Edit"
+                              ]
+                            }),
+                            u.jsxs("button", {
+                              type: "button",
+                              onClick: () => { if (!isCurrent && users.length > 1) setDeleteTarget(user); },
+                              disabled: isCurrent || users.length <= 1,
+                              title: isCurrent ? "You cannot delete your own account" : users.length <= 1 ? "Cannot delete the only admin" : "Delete user",
+                              className: `px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${isCurrent || users.length <= 1 ? "opacity-30 cursor-not-allowed text-gray-500 border border-transparent" : "bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-400 hover:text-red-300"}`,
+                              children: [
+                                u.jsx("svg", { className: "h-3.5 w-3.5", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" }) }),
+                                "Delete"
+                              ]
+                            })
+                          ]
+                        })
+                      })
+                    ]
+                  }, user.id);
+                })
+              })
+            ]
+          })
+        })
+      }),
+
+      /* Modal: Create Admin User */
+      showCreateModal && u.jsx("div", {
+        className: "fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4",
+        children: u.jsxs("div", {
+          className: "bg-[#0B192C] border border-[#1E3E62] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150",
+          children: [
+            u.jsxs("div", {
+              className: "flex items-center justify-between border-b border-[#1E3E62] pb-3",
+              children: [
+                u.jsxs("div", {
+                  className: "flex items-center gap-2",
+                  children: [
+                    u.jsx("div", { className: "p-1.5 bg-[#FF8E25]/15 border border-[#FF8E25]/30 rounded-lg text-[#FF8E25]", children: u.jsx("svg", { className: "h-4 w-4", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" }) }) }),
+                    u.jsx("h4", { className: "text-base font-bold text-white", children: "Add New Admin User" })
+                  ]
+                }),
+                u.jsx("button", {
+                  type: "button",
+                  onClick: () => setShowCreateModal(false),
+                  className: "text-gray-400 hover:text-white p-1 rounded-lg transition",
+                  children: u.jsx("svg", { className: "h-5 w-5", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M6 18L18 6M6 6l12 12" }) })
+                })
+              ]
+            }),
+            formError && u.jsx("div", {
+              className: "p-3 bg-red-500/15 border border-red-500/30 rounded-lg text-xs text-red-400 font-medium",
+              children: formError
+            }),
+            u.jsxs("form", {
+              onSubmit: handleCreate,
+              className: "space-y-4",
+              children: [
+                u.jsxs("div", {
+                  children: [
+                    u.jsx("label", { className: "block text-xs font-semibold text-gray-300 mb-1", children: "Full Name" }),
+                    u.jsx("input", {
+                      type: "text",
+                      required: true,
+                      value: createForm.name,
+                      onChange: e => setCreateForm({ ...createForm, name: e.target.value }),
+                      placeholder: "e.g. John Doe",
+                      className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]"
+                    })
+                  ]
+                }),
+                u.jsxs("div", {
+                  children: [
+                    u.jsx("label", { className: "block text-xs font-semibold text-gray-300 mb-1", children: "Email Address" }),
+                    u.jsx("input", {
+                      type: "email",
+                      required: true,
+                      value: createForm.email,
+                      onChange: e => setCreateForm({ ...createForm, email: e.target.value }),
+                      placeholder: "admin@ceylontalent.com",
+                      className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]"
+                    })
+                  ]
+                }),
+                u.jsxs("div", {
+                  children: [
+                    u.jsx("label", { className: "block text-xs font-semibold text-gray-300 mb-1", children: "Password (minimum 8 characters)" }),
+                    u.jsx("input", {
+                      type: showPassword ? "text" : "password",
+                      required: true,
+                      minLength: 8,
+                      value: createForm.password,
+                      onChange: e => setCreateForm({ ...createForm, password: e.target.value }),
+                      placeholder: "••••••••",
+                      className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]"
+                    })
+                  ]
+                }),
+                u.jsxs("div", {
+                  children: [
+                    u.jsx("label", { className: "block text-xs font-semibold text-gray-300 mb-1", children: "Confirm Password" }),
+                    u.jsx("input", {
+                      type: showPassword ? "text" : "password",
+                      required: true,
+                      minLength: 8,
+                      value: createForm.confirmPassword,
+                      onChange: e => setCreateForm({ ...createForm, confirmPassword: e.target.value }),
+                      placeholder: "••••••••",
+                      className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]"
+                    })
+                  ]
+                }),
+                u.jsxs("div", {
+                  className: "flex items-center gap-2 pt-1",
+                  children: [
+                    u.jsx("input", {
+                      type: "checkbox",
+                      id: "show_create_pwd",
+                      checked: showPassword,
+                      onChange: e => setShowPassword(e.target.checked),
+                      className: "accent-[#FF8E25] rounded"
+                    }),
+                    u.jsx("label", { htmlFor: "show_create_pwd", className: "text-xs text-gray-400 cursor-pointer select-none", children: "Show passwords" })
+                  ]
+                }),
+                u.jsxs("div", {
+                  className: "flex items-center justify-end gap-3 pt-3 border-t border-[#1E3E62]",
+                  children: [
+                    u.jsx("button", {
+                      type: "button",
+                      onClick: () => setShowCreateModal(false),
+                      className: "px-4 py-2 bg-transparent hover:bg-[#1E3E62]/40 text-gray-300 rounded-lg text-xs font-semibold transition",
+                      children: "Cancel"
+                    }),
+                    u.jsxs("button", {
+                      type: "submit",
+                      disabled: submitting,
+                      className: "px-5 py-2 bg-[#FF8E25] hover:bg-[#ff9c3a] text-white rounded-lg text-xs font-bold flex items-center gap-2 shadow transition disabled:opacity-50",
+                      children: [
+                        submitting && u.jsx(Er, { className: "h-3.5 w-3.5 animate-spin" }),
+                        "Create Admin User"
+                      ]
+                    })
+                  ]
+                })
+              ]
+            })
+          ]
+        })
+      }),
+
+      /* Modal: Edit User (Name & Email) */
+      editUser && u.jsx("div", {
+        className: "fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4",
+        children: u.jsxs("div", {
+          className: "bg-[#0B192C] border border-[#1E3E62] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150",
+          children: [
+            u.jsxs("div", {
+              className: "flex items-center justify-between border-b border-[#1E3E62] pb-3",
+              children: [
+                u.jsxs("div", {
+                  className: "flex items-center gap-2",
+                  children: [
+                    u.jsx("div", { className: "p-1.5 bg-blue-500/15 border border-blue-500/30 rounded-lg text-blue-400", children: u.jsx("svg", { className: "h-4 w-4", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" }) }) }),
+                    u.jsx("h4", { className: "text-base font-bold text-white", children: "Edit Admin Profile" })
+                  ]
+                }),
+                u.jsx("button", {
+                  type: "button",
+                  onClick: () => setEditUser(null),
+                  className: "text-gray-400 hover:text-white p-1 rounded-lg transition",
+                  children: u.jsx("svg", { className: "h-5 w-5", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M6 18L18 6M6 6l12 12" }) })
+                })
+              ]
+            }),
+            formError && u.jsx("div", {
+              className: "p-3 bg-red-500/15 border border-red-500/30 rounded-lg text-xs text-red-400 font-medium",
+              children: formError
+            }),
+            u.jsxs("form", {
+              onSubmit: handleEdit,
+              className: "space-y-4",
+              children: [
+                u.jsxs("div", {
+                  children: [
+                    u.jsx("label", { className: "block text-xs font-semibold text-gray-300 mb-1", children: "Full Name" }),
+                    u.jsx("input", {
+                      type: "text",
+                      required: true,
+                      value: editForm.name,
+                      onChange: e => setEditForm({ ...editForm, name: e.target.value }),
+                      className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]"
+                    })
+                  ]
+                }),
+                u.jsxs("div", {
+                  children: [
+                    u.jsx("label", { className: "block text-xs font-semibold text-gray-300 mb-1", children: "Email Address" }),
+                    u.jsx("input", {
+                      type: "email",
+                      required: true,
+                      value: editForm.email,
+                      onChange: e => setEditForm({ ...editForm, email: e.target.value }),
+                      className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]"
+                    })
+                  ]
+                }),
+                u.jsxs("div", {
+                  className: "flex items-center justify-end gap-3 pt-3 border-t border-[#1E3E62]",
+                  children: [
+                    u.jsx("button", {
+                      type: "button",
+                      onClick: () => setEditUser(null),
+                      className: "px-4 py-2 bg-transparent hover:bg-[#1E3E62]/40 text-gray-300 rounded-lg text-xs font-semibold transition",
+                      children: "Cancel"
+                    }),
+                    u.jsxs("button", {
+                      type: "submit",
+                      disabled: submitting,
+                      className: "px-5 py-2 bg-[#FF8E25] hover:bg-[#ff9c3a] text-white rounded-lg text-xs font-bold flex items-center gap-2 shadow transition disabled:opacity-50",
+                      children: [
+                        submitting && u.jsx(Er, { className: "h-3.5 w-3.5 animate-spin" }),
+                        "Save Profile"
+                      ]
+                    })
+                  ]
+                })
+              ]
+            })
+          ]
+        })
+      }),
+
+      /* Modal: Change Password */
+      passwordUser && u.jsx("div", {
+        className: "fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4",
+        children: u.jsxs("div", {
+          className: "bg-[#0B192C] border border-[#1E3E62] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150",
+          children: [
+            u.jsxs("div", {
+              className: "flex items-center justify-between border-b border-[#1E3E62] pb-3",
+              children: [
+                u.jsxs("div", {
+                  className: "flex items-center gap-2",
+                  children: [
+                    u.jsx("div", { className: "p-1.5 bg-blue-500/15 border border-blue-500/30 rounded-lg text-blue-400", children: u.jsx("svg", { className: "h-4 w-4", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" }) }) }),
+                    u.jsx("h4", { className: "text-base font-bold text-white", children: "Change Password" })
+                  ]
+                }),
+                u.jsx("button", {
+                  type: "button",
+                  onClick: () => setPasswordUser(null),
+                  className: "text-gray-400 hover:text-white p-1 rounded-lg transition",
+                  children: u.jsx("svg", { className: "h-5 w-5", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M6 18L18 6M6 6l12 12" }) })
+                })
+              ]
+            }),
+            u.jsxs("div", {
+              className: "bg-[#060D17] border border-[#1E3E62]/60 rounded-lg p-3 text-xs text-gray-300",
+              children: [
+                "Setting new password for: ",
+                u.jsx("strong", { className: "text-white", children: passwordUser.name }),
+                " (",
+                u.jsx("span", { className: "font-mono text-[#FF8E25]", children: passwordUser.email }),
+                ")"
+              ]
+            }),
+            formError && u.jsx("div", {
+              className: "p-3 bg-red-500/15 border border-red-500/30 rounded-lg text-xs text-red-400 font-medium",
+              children: formError
+            }),
+            u.jsxs("form", {
+              onSubmit: handlePassword,
+              className: "space-y-4",
+              children: [
+                u.jsxs("div", {
+                  children: [
+                    u.jsx("label", { className: "block text-xs font-semibold text-gray-300 mb-1", children: "New Password (minimum 8 characters)" }),
+                    u.jsx("input", {
+                      type: showPassword ? "text" : "password",
+                      required: true,
+                      minLength: 8,
+                      value: passwordForm.password,
+                      onChange: e => setPasswordForm({ ...passwordForm, password: e.target.value }),
+                      placeholder: "••••••••",
+                      className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]"
+                    })
+                  ]
+                }),
+                u.jsxs("div", {
+                  children: [
+                    u.jsx("label", { className: "block text-xs font-semibold text-gray-300 mb-1", children: "Confirm New Password" }),
+                    u.jsx("input", {
+                      type: showPassword ? "text" : "password",
+                      required: true,
+                      minLength: 8,
+                      value: passwordForm.confirmPassword,
+                      onChange: e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value }),
+                      placeholder: "••••••••",
+                      className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]"
+                    })
+                  ]
+                }),
+                u.jsxs("div", {
+                  className: "flex items-center gap-2 pt-1",
+                  children: [
+                    u.jsx("input", {
+                      type: "checkbox",
+                      id: "show_update_pwd",
+                      checked: showPassword,
+                      onChange: e => setShowPassword(e.target.checked),
+                      className: "accent-[#FF8E25] rounded"
+                    }),
+                    u.jsx("label", { htmlFor: "show_update_pwd", className: "text-xs text-gray-400 cursor-pointer select-none", children: "Show password" })
+                  ]
+                }),
+                u.jsxs("div", {
+                  className: "flex items-center justify-end gap-3 pt-3 border-t border-[#1E3E62]",
+                  children: [
+                    u.jsx("button", {
+                      type: "button",
+                      onClick: () => setPasswordUser(null),
+                      className: "px-4 py-2 bg-transparent hover:bg-[#1E3E62]/40 text-gray-300 rounded-lg text-xs font-semibold transition",
+                      children: "Cancel"
+                    }),
+                    u.jsxs("button", {
+                      type: "submit",
+                      disabled: submitting,
+                      className: "px-5 py-2 bg-[#FF8E25] hover:bg-[#ff9c3a] text-white rounded-lg text-xs font-bold flex items-center gap-2 shadow transition disabled:opacity-50",
+                      children: [
+                        submitting && u.jsx(Er, { className: "h-3.5 w-3.5 animate-spin" }),
+                        "Update Password"
+                      ]
+                    })
+                  ]
+                })
+              ]
+            })
+          ]
+        })
+      }),
+
+      /* Modal: Delete Confirmation */
+      deleteTarget && u.jsx("div", {
+        className: "fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4",
+        children: u.jsxs("div", {
+          className: "bg-[#0B192C] border border-red-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150",
+          children: [
+            u.jsxs("div", {
+              className: "flex items-center gap-3 text-red-400",
+              children: [
+                u.jsx("div", { className: "p-2 bg-red-500/20 border border-red-500/30 rounded-xl", children: u.jsx("svg", { className: "h-6 w-6", fill: "none", viewBox: "0 0 24 24", stroke: "currentColor", children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" }) }) }),
+                u.jsxs("div", {
+                  children: [
+                    u.jsx("h4", { className: "text-base font-bold text-white", children: "Delete Admin Account" }),
+                    u.jsx("p", { className: "text-xs text-gray-400", children: "This action cannot be undone." })
+                  ]
+                })
+              ]
+            }),
+            u.jsxs("p", {
+              className: "text-xs text-gray-300 leading-relaxed",
+              children: [
+                "Are you sure you want to permanently delete the admin account for ",
+                u.jsx("strong", { className: "text-white", children: deleteTarget.name }),
+                " (",
+                u.jsx("span", { className: "font-mono text-red-300", children: deleteTarget.email }),
+                ")? They will immediately lose all access to the CMS dashboard."
+              ]
+            }),
+            u.jsxs("div", {
+              className: "flex items-center justify-end gap-3 pt-3 border-t border-[#1E3E62]",
+              children: [
+                u.jsx("button", {
+                  type: "button",
+                  onClick: () => setDeleteTarget(null),
+                  className: "px-4 py-2 bg-transparent hover:bg-[#1E3E62]/40 text-gray-300 rounded-lg text-xs font-semibold transition",
+                  children: "Cancel"
+                }),
+                u.jsxs("button", {
+                  type: "button",
+                  onClick: handleDelete,
+                  disabled: submitting,
+                  className: "px-5 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-bold flex items-center gap-2 shadow transition disabled:opacity-50",
+                  children: [
+                    submitting && u.jsx(Er, { className: "h-3.5 w-3.5 animate-spin" }),
+                    "Yes, Delete Admin"
+                  ]
+                })
+              ]
+            })
+          ]
+        })
+      })
+    ]
+  });
+};
+
+const EnquiriesTable = ({ enquiries, l2icon }) => {
   const [search, setSearch] = F.useState("");
   const [filterTimeline, setFilterTimeline] = F.useState("");
   const [filterBiz, setFilterBiz] = F.useState("");
@@ -671,9 +1385,9 @@ Sitemap: https://ceylontalentconnect.com/sitemap.xml`}), u.jsxs("div", { classNa
       })
   ]});
 };
-const Se = [{ id: "home", label: "Home Page", icon: o_ }, { id: "about", label: "About Page", icon: Ks }, { id: "solutions", label: "Solutions", icon: qt }, { id: "sri_lanka", label: "Sri Lanka", icon: _s }, { id: "faq", label: "FAQ Page", icon: Cx }, { id: "testimonials", label: "Testimonials", icon: qt }, { id: "blog", label: "Blogs Manager", icon: o2 }, { id: "contact", label: "Contact Info", icon: If }, { id: "landing_pages", label: "Landing Pages", icon: o2 }, { id: "global", label: "Global Settings", icon: mf }, { id: "enquiries", label: "Enquiries", icon: l2 }, { id: "seo", label: "SEO & Analytics", icon: Nk }]; return u.jsxs("div", {
+const Se = [{ id: "home", label: "Home Page", icon: o_ }, { id: "about", label: "About Page", icon: Ks }, { id: "solutions", label: "Solutions", icon: qt }, { id: "sri_lanka", label: "Sri Lanka", icon: _s }, { id: "faq", label: "FAQ Page", icon: Cx }, { id: "testimonials", label: "Testimonials", icon: qt }, { id: "blog", label: "Blogs Manager", icon: o2 }, { id: "contact", label: "Contact Info", icon: If }, { id: "landing_pages", label: "Landing Pages", icon: o2 }, { id: "global", label: "Global Settings", icon: mf }, { id: "enquiries", label: "Enquiries", icon: l2 }, { id: "seo", label: "SEO & Analytics", icon: Nk }, { id: "users", label: "Admin Users", icon: Ks }]; return u.jsxs("div", {
     className: "min-h-screen bg-[#060D17] text-gray-200 font-sans flex flex-col md:flex-row pb-24 md:pb-0", children: [u.jsxs("aside", { className: "w-full md:w-64 bg-[#0B192C] border-b md:border-b-0 md:border-r border-[#1E3E62] flex flex-col shrink-0 admin-sidebar", children: [u.jsxs("div", { className: "p-6 border-b border-[#1E3E62] flex items-center justify-between", children: [u.jsxs("div", { className: "flex items-center gap-2", children: [u.jsx("div", { className: "p-1 bg-[#1E3E62] rounded-lg", children: u.jsx(_s, { className: "h-6 w-6 text-[#FF8E25]" }) }), u.jsx("span", { className: "font-bold text-white text-md tracking-tight", children: "CTC CMS Admin" })] }), u.jsx("button", { onClick: K, className: "md:hidden p-2 text-gray-400 hover:text-white transition", title: "Log Out", children: u.jsx(u2, { className: "h-5 w-5" }) })] }), u.jsxs("nav", { className: "flex-1 p-4 space-y-1 overflow-y-auto", children: [u.jsx("div", { className: "px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400", children: "Pages" }), Se.map(j => { const _ = j.icon, $ = m === j.id; return u.jsxs("button", { onClick: () => { k ? confirm("You have unsaved changes. Discard them?") && te(j.id) : te(j.id) }, className: `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${$ ? "bg-[#1E3E62] text-white border-l-4 border-[#FF8E25]" : "text-gray-400 hover:bg-[#0E243E] hover:text-white"}`, children: [u.jsx(_, { className: "h-4 w-4" }), j.label] }, j.id) }), u.jsxs("div", { className: "pt-1", children: [u.jsxs("button", { onClick: () => D(j => !j), className: `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${m.startsWith("solution_") ? "bg-[#1E3E62] text-white border-l-4 border-[#FF8E25]" : "text-gray-400 hover:bg-[#0E243E] hover:text-white"}`, children: [u.jsx(pf, { className: "h-4 w-4 shrink-0" }), u.jsx("span", { className: "flex-1 text-left", children: "Solution Pages" }), T ? u.jsx(Sa, { className: "h-3.5 w-3.5" }) : u.jsx(xk, { className: "h-3.5 w-3.5" })] }), T && u.jsx("div", { className: "ml-3 mt-1 space-y-0.5 border-l border-[#1E3E62] pl-3", children: Object.entries(Tf).map(([j, _]) => { const $ = `solution_${j}`, ge = m === $; return u.jsxs("button", { onClick: () => { k ? confirm("You have unsaved changes. Discard them?") && te($) : te($) }, className: `w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium transition ${ge ? "bg-[#1E3E62] text-white" : "text-gray-500 hover:bg-[#0E243E] hover:text-gray-300"}`, children: [u.jsx("span", { className: "h-1.5 w-1.5 rounded-full bg-current opacity-60 shrink-0" }), _] }, j) }) })] })] }), u.jsxs("div", { className: "p-4 border-t border-[#1E3E62] hidden md:flex items-center justify-between bg-[#081322]", children: [u.jsxs("div", { className: "min-w-0", children: [u.jsx("p", { className: "text-xs text-gray-400 truncate", children: "Logged in as" }), u.jsx("p", { className: "text-sm font-semibold text-white truncate", children: t.email })] }), u.jsx("button", { onClick: K, className: "p-2 text-gray-400 hover:text-[#FF8E25] hover:bg-[#0E243E] rounded-lg transition", title: "Log Out", children: u.jsx(u2, { className: "h-4 w-4" }) })] })] }), u.jsxs("main", {
-      className: "flex-1 flex flex-col min-w-0 bg-[#060D17]", children: [u.jsxs("header", { className: "h-16 border-b border-[#1E3E62]/60 px-6 md:px-8 flex items-center justify-between shrink-0 bg-[#0B192C]/50 backdrop-blur-md", children: [u.jsxs("div", { className: "flex items-center gap-3", children: [u.jsx("h2", { className: "text-lg font-bold text-white uppercase tracking-wider", children: m.startsWith("solution_") ? `Solution: ${Tf[m.replace("solution_", "")] || m}` : m.startsWith("lp_") ? `Landing Page: /lp/${m.replace("lp_", "")}` : Se.find(j => j.id === m)?.label }), k && m !== "enquiries" && m !== "seo" && u.jsx("span", { className: "px-2 py-0.5 rounded text-[10px] font-bold bg-[#FF8E25]/20 text-[#FF8E25] border border-[#FF8E25]/30 animate-pulse", children: "Unsaved Changes" })] }), u.jsxs("div", { className: "flex items-center gap-3", children: [u.jsxs("a", { href: "/", target: "_blank", rel: "noreferrer", className: "px-3.5 py-1.5 border border-[#1E3E62] hover:bg-[#1E3E62] text-xs font-semibold rounded-lg flex items-center gap-1.5 transition text-gray-300 hover:text-white", children: [u.jsx(Hd, { className: "h-3.5 w-3.5" }), "Live Preview"] }), m !== "enquiries" && m !== "seo" && u.jsxs("button", { onClick: he, disabled: M || !k, className: `px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${k ? "bg-[#FF8E25] text-white hover:bg-[#ff9c3a] active:scale-[0.98]" : "bg-gray-700 text-gray-400 cursor-not-allowed"}`, children: [M ? u.jsx(Er, { className: "h-3.5 w-3.5 animate-spin" }) : u.jsx(Tx, { className: "h-3.5 w-3.5" }), "Save Changes"] })] })] }), u.jsx("div", {
+      className: "flex-1 flex flex-col min-w-0 bg-[#060D17]", children: [u.jsxs("header", { className: "h-16 border-b border-[#1E3E62]/60 px-6 md:px-8 flex items-center justify-between shrink-0 bg-[#0B192C]/50 backdrop-blur-md", children: [u.jsxs("div", { className: "flex items-center gap-3", children: [u.jsx("h2", { className: "text-lg font-bold text-white uppercase tracking-wider", children: m.startsWith("solution_") ? `Solution: ${Tf[m.replace("solution_", "")] || m}` : m.startsWith("lp_") ? `Landing Page: /lp/${m.replace("lp_", "")}` : Se.find(j => j.id === m)?.label }), k && m !== "enquiries" && m !== "seo" && m !== "users" && u.jsx("span", { className: "px-2 py-0.5 rounded text-[10px] font-bold bg-[#FF8E25]/20 text-[#FF8E25] border border-[#FF8E25]/30 animate-pulse", children: "Unsaved Changes" })] }), u.jsxs("div", { className: "flex items-center gap-3", children: [u.jsxs("a", { href: "/", target: "_blank", rel: "noreferrer", className: "px-3.5 py-1.5 border border-[#1E3E62] hover:bg-[#1E3E62] text-xs font-semibold rounded-lg flex items-center gap-1.5 transition text-gray-300 hover:text-white", children: [u.jsx(Hd, { className: "h-3.5 w-3.5" }), "Live Preview"] }), m !== "enquiries" && m !== "seo" && m !== "users" && u.jsxs("button", { onClick: he, disabled: M || !k, className: `px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition ${k ? "bg-[#FF8E25] text-white hover:bg-[#ff9c3a] active:scale-[0.98]" : "bg-gray-700 text-gray-400 cursor-not-allowed"}`, children: [M ? u.jsx(Er, { className: "h-3.5 w-3.5 animate-spin" }) : u.jsx(Tx, { className: "h-3.5 w-3.5" }), "Save Changes"] })] })] }), u.jsx("div", {
         className: "flex-1 p-6 md:p-8 overflow-y-auto max-w-5xl w-full mx-auto space-y-8 pb-32", children: w ? u.jsxs("div", { className: "h-64 flex flex-col items-center justify-center gap-3", children: [u.jsx(Er, { className: "h-8 w-8 text-[#FF8E25] animate-spin" }), u.jsx("p", { className: "text-sm text-gray-400", children: "Loading page components..." })] }) : u.jsxs("div", {
           className: "space-y-8 animate-fade-in", children: [m === "home" && y.hero && u.jsxs(u.Fragment, { children: [u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("h3", { className: "text-sm font-bold text-white border-b border-[#1E3E62] pb-2 flex items-center gap-2", children: [u.jsx(qt, { className: "h-4 w-4 text-[#FF8E25]" }), "Hero Section"] }), u.jsxs("div", { className: "grid gap-4", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Headline (HTML / line-breaks allowed)" }), u.jsx("textarea", { rows: 2, value: y.hero.title, onChange: j => X("hero", "title", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg p-3 text-sm text-white focus:outline-none focus:border-[#FF8E25]" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Sub-headline Description" }), u.jsx("textarea", { rows: 3, value: y.hero.subtitle, onChange: j => X("hero", "subtitle", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg p-3 text-sm text-white focus:outline-none focus:border-[#FF8E25]" })] }), u.jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-4", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Primary Trial Button Label" }), u.jsx("input", { type: "text", value: y.hero.trialBtnText, onChange: j => X("hero", "trialBtnText", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Secondary Button Label" }), u.jsx("input", { type: "text", value: y.hero.exploreBtnText, onChange: j => X("hero", "exploreBtnText", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]" })] })] }), u.jsxs("div", { className: "space-y-1", children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400", children: "Hero Background Image" }), u.jsxs("div", { className: "flex gap-2", children: [u.jsx("input", { type: "text", value: y.hero.image || "", onChange: j => X("hero", "image", j.target.value), className: "flex-1 bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]", placeholder: "Paste image URL or upload below" }), u.jsxs("label", { className: "bg-[#1E3E62] hover:bg-[#FF8E25] text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-1 cursor-pointer transition", children: [u.jsx(On, { className: "h-4 w-4" }), u.jsx("input", { type: "file", accept: "image/*", className: "hidden", onChange: j => { j.target.files?.[0] && ne("hero", null, "image", j.target.files[0]) } })] })] }), y.hero.image && u.jsx("div", { className: "h-20 w-40 bg-white/5 border border-white/10 rounded overflow-hidden mt-1", children: u.jsx("img", { src: y.hero.image, className: "h-full w-full object-cover" }) }), u.jsx("p", { className: "text-[10px] text-gray-500", children: "Leave blank to use the default bundled image." })] })] })] }), u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("h3", { className: "text-sm font-bold text-white border-b border-[#1E3E62] pb-2 flex items-center gap-2", children: [u.jsx(Io, { className: "h-4 w-4 text-[#FF8E25]" }), "What We Do Section"] }), u.jsxs("div", { className: "grid gap-4", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Section Title" }), u.jsx("input", { type: "text", value: y.whatWeDo?.title || "", onChange: j => X("whatWeDo", "title", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Paragraph 1" }), u.jsx("textarea", { rows: 2, value: y.whatWeDo?.body1 || "", onChange: j => X("whatWeDo", "body1", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg p-3 text-sm text-white focus:outline-none focus:border-[#FF8E25]" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Paragraph 2" }), u.jsx("textarea", { rows: 2, value: y.whatWeDo?.body2 || "", onChange: j => X("whatWeDo", "body2", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg p-3 text-sm text-white focus:outline-none focus:border-[#FF8E25]" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Closing CTA Line" }), u.jsx("input", { type: "text", value: y.whatWeDo?.cta || "", onChange: j => X("whatWeDo", "cta", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]" })] })] })] }), u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("div", { className: "flex justify-between items-center border-b border-[#1E3E62] pb-2", children: [u.jsxs("h3", { className: "text-sm font-bold text-white flex items-center gap-2", children: [u.jsx(Ks, { className: "h-4 w-4 text-[#FF8E25]" }), "Why Choose Us Cards"] }), u.jsxs("button", { onClick: () => Z("reasons", { title: "New Reason Title", body: "New reason body content." }), className: "bg-[#1E3E62] hover:bg-[#FF8E25] hover:text-white text-gray-200 px-3 py-1 rounded text-xs font-bold flex items-center gap-1 transition", children: [u.jsx(Wn, { className: "h-3.5 w-3.5" }), " Add Card"] })] }), u.jsx("div", { className: "space-y-4", children: y.reasons?.map((j, _) => u.jsxs("div", { className: "bg-[#060D17] border border-[#1E3E62]/60 rounded-lg p-4 relative space-y-3", children: [u.jsxs("div", { className: "flex items-center justify-between border-b border-[#1E3E62]/35 pb-2", children: [u.jsxs("span", { className: "text-xs font-bold text-gray-500", children: ["Card #", _ + 1] }), u.jsxs("div", { className: "flex items-center gap-1", children: [u.jsx("button", { onClick: () => O("reasons", _, "up"), className: "p-1 hover:bg-[#1E3E62] rounded text-gray-400 hover:text-white", children: u.jsx(Ts, { className: "h-3.5 w-3.5" }) }), u.jsx("button", { onClick: () => O("reasons", _, "down"), className: "p-1 hover:bg-[#1E3E62] rounded text-gray-400 hover:text-white", children: u.jsx(Cs, { className: "h-3.5 w-3.5" }) }), u.jsx("button", { onClick: () => W("reasons", _), className: "p-1 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300", children: u.jsx(Ms, { className: "h-3.5 w-3.5" }) })] })] }), u.jsx("div", { children: u.jsx("input", { type: "text", value: j.title, onChange: $ => le("reasons", _, "title", $.target.value), className: "w-full bg-[#0B192C] border border-[#1E3E62] rounded px-3 py-1.5 text-sm font-bold text-white focus:outline-none", placeholder: "Title" }) }), u.jsx("div", { children: u.jsx("textarea", { rows: 2, value: j.body, onChange: $ => le("reasons", _, "body", $.target.value), className: "w-full bg-[#0B192C] border border-[#1E3E62] rounded p-2 text-xs text-gray-300 focus:outline-none", placeholder: "Description body" }) })] }, _)) })] }), u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("div", { className: "flex justify-between items-center border-b border-[#1E3E62] pb-2", children: [u.jsxs("h3", { className: "text-sm font-bold text-white flex items-center gap-2", children: [u.jsx(qt, { className: "h-4 w-4 text-[#FF8E25]" }), "Our Solutions Cards"] }), u.jsxs("button", { onClick: () => Z("solutions", { name: "New Solution", body: "Description of this solution." }), className: "bg-[#1E3E62] hover:bg-[#FF8E25] hover:text-white text-gray-200 px-3 py-1 rounded text-xs font-bold flex items-center gap-1 transition", children: [u.jsx(Wn, { className: "h-3.5 w-3.5" }), " Add Card"] })] }), u.jsx("p", { className: "text-[11px] text-gray-500", children: 'These are the solution cards shown in the "Our Solutions" grid on the home page. Icon is auto-assigned by name.' }), u.jsx("div", { className: "space-y-4", children: y.solutions?.map((j, _) => u.jsxs("div", { className: "bg-[#060D17] border border-[#1E3E62]/60 rounded-lg p-4 relative space-y-3", children: [u.jsxs("div", { className: "flex items-center justify-between border-b border-[#1E3E62]/35 pb-2", children: [u.jsxs("span", { className: "text-xs font-bold text-gray-500", children: ["Card #", _ + 1] }), u.jsxs("div", { className: "flex items-center gap-1", children: [u.jsx("button", { onClick: () => O("solutions", _, "up"), className: "p-1 hover:bg-[#1E3E62] rounded text-gray-400 hover:text-white", children: u.jsx(Ts, { className: "h-3.5 w-3.5" }) }), u.jsx("button", { onClick: () => O("solutions", _, "down"), className: "p-1 hover:bg-[#1E3E62] rounded text-gray-400 hover:text-white", children: u.jsx(Cs, { className: "h-3.5 w-3.5" }) }), u.jsx("button", { onClick: () => W("solutions", _), className: "p-1 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300", children: u.jsx(Ms, { className: "h-3.5 w-3.5" }) })] })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-[10px] text-gray-500 mb-1", children: "Solution Name" }), u.jsx("input", { type: "text", value: j.name, onChange: $ => le("solutions", _, "name", $.target.value), className: "w-full bg-[#0B192C] border border-[#1E3E62] rounded px-3 py-1.5 text-sm font-bold text-white focus:outline-none", placeholder: "e.g. Virtual Assistants" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-[10px] text-gray-500 mb-1", children: "Card Description" }), u.jsx("textarea", { rows: 3, value: j.body, onChange: $ => le("solutions", _, "body", $.target.value), className: "w-full bg-[#0B192C] border border-[#1E3E62] rounded p-2 text-xs text-gray-300 focus:outline-none", placeholder: "Shown on the card" })] })] }, _)) })] }), u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("div", { className: "flex justify-between items-center border-b border-[#1E3E62] pb-2", children: [u.jsxs("h3", { className: "text-sm font-bold text-white flex items-center gap-2", children: [u.jsx(_s, { className: "h-4 w-4 text-[#FF8E25]" }), "Client Logos"] }), u.jsxs("button", { onClick: () => Z("clients", { name: "Client Name", src: "" }), className: "bg-[#1E3E62] hover:bg-[#FF8E25] hover:text-white text-gray-200 px-3 py-1 rounded text-xs font-bold flex items-center gap-1 transition", children: [u.jsx(Wn, { className: "h-3.5 w-3.5" }), " Add Logo"] })] }), u.jsx("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-4", children: y.clients?.map((j, _) => u.jsxs("div", { className: "bg-[#060D17] border border-[#1E3E62]/60 rounded-lg p-4 relative space-y-3", children: [u.jsxs("div", { className: "flex items-center justify-between border-b border-[#1E3E62]/35 pb-1", children: [u.jsxs("span", { className: "text-xs font-bold text-gray-500", children: ["Logo #", _ + 1] }), u.jsxs("div", { className: "flex items-center gap-1", children: [u.jsx("button", { onClick: () => O("clients", _, "up"), className: "p-1 hover:bg-[#1E3E62] rounded text-gray-400 hover:text-white", children: u.jsx(Ts, { className: "h-3 w-3" }) }), u.jsx("button", { onClick: () => O("clients", _, "down"), className: "p-1 hover:bg-[#1E3E62] rounded text-gray-400 hover:text-white", children: u.jsx(Cs, { className: "h-3 w-3" }) }), u.jsx("button", { onClick: () => W("clients", _), className: "p-1 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300", children: u.jsx(Ms, { className: "h-3 w-3" }) })] })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-[10px] text-gray-500", children: "Client Name" }), u.jsx("input", { type: "text", value: j.name, onChange: $ => le("clients", _, "name", $.target.value), className: "w-full bg-[#0B192C] border border-[#1E3E62] rounded px-2 py-1 text-xs text-white" })] }), u.jsxs("div", { className: "space-y-1", children: [u.jsx("label", { className: "block text-[10px] text-gray-500", children: "Logo URL or Upload Image" }), u.jsxs("div", { className: "flex gap-2", children: [u.jsx("input", { type: "text", value: j.src, onChange: $ => le("clients", _, "src", $.target.value), className: "flex-1 bg-[#0B192C] border border-[#1E3E62] rounded px-2 py-1 text-xs text-white", placeholder: "/ctc/assets/logo.png" }), u.jsxs("label", { className: "bg-[#1E3E62] hover:bg-[#FF8E25] text-white px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1 cursor-pointer transition", children: [u.jsx(On, { className: "h-3.5 w-3.5" }), u.jsx("input", { type: "file", accept: "image/*", className: "hidden", onChange: $ => { $.target.files?.[0] && ne("clients", _, "src", $.target.files[0]) } })] })] }), j.src && u.jsx("div", { className: "h-12 w-full bg-white/5 border border-white/10 rounded flex items-center justify-center p-1 mt-1", children: u.jsx("img", { src: j.src, alt: j.name, className: "max-h-full max-w-full object-contain" }) })] })] }, _)) })] })] }), m === "about" && y.hero && u.jsxs(u.Fragment, { children: [u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("h3", { className: "text-sm font-bold text-white border-b border-[#1E3E62] pb-2 flex items-center gap-2", children: [u.jsx(qt, { className: "h-4 w-4 text-[#FF8E25]" }), "Hero Section"] }), u.jsxs("div", { className: "grid gap-4", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Headline" }), u.jsx("input", { type: "text", value: y.hero.title, onChange: j => X("hero", "title", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Hero Description" }), u.jsx("textarea", { rows: 3, value: y.hero.body, onChange: j => X("hero", "body", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg p-3 text-sm text-white" })] }), u.jsxs("div", { className: "space-y-1", children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400", children: "Hero Background Image" }), u.jsxs("div", { className: "flex gap-2", children: [u.jsx("input", { type: "text", value: y.hero.image || "", onChange: j => X("hero", "image", j.target.value), className: "flex-1 bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]", placeholder: "Paste image URL or upload below" }), u.jsxs("label", { className: "bg-[#1E3E62] hover:bg-[#FF8E25] text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-1 cursor-pointer transition", children: [u.jsx(On, { className: "h-4 w-4" }), u.jsx("input", { type: "file", accept: "image/*", className: "hidden", onChange: j => { j.target.files?.[0] && ne("hero", null, "image", j.target.files[0]) } })] })] }), y.hero.image && u.jsx("div", { className: "h-20 w-40 bg-white/5 border border-white/10 rounded overflow-hidden mt-1", children: u.jsx("img", { src: y.hero.image, className: "h-full w-full object-cover" }) }), u.jsx("p", { className: "text-[10px] text-gray-500", children: "Leave blank to use the default bundled image." })] })] })] }), u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("h3", { className: "text-sm font-bold text-white border-b border-[#1E3E62] pb-2 flex items-center gap-2", children: [u.jsx(Io, { className: "h-4 w-4 text-[#FF8E25]" }), "Our Story Section"] }), u.jsxs("div", { className: "grid gap-4", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Story Title" }), u.jsx("input", { type: "text", value: y.story.title, onChange: j => X("story", "title", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Paragraph 1" }), u.jsx("textarea", { rows: 3, value: y.story.body1, onChange: j => X("story", "body1", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg p-3 text-sm text-white" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Paragraph 2" }), u.jsx("textarea", { rows: 3, value: y.story.body2, onChange: j => X("story", "body2", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg p-3 text-sm text-white" })] }), u.jsxs("div", { className: "space-y-1", children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400", children: "Story Section Image" }), u.jsxs("div", { className: "flex gap-2", children: [u.jsx("input", { type: "text", value: y.story.image || "", onChange: j => X("story", "image", j.target.value), className: "flex-1 bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]", placeholder: "Paste image URL or upload below" }), u.jsxs("label", { className: "bg-[#1E3E62] hover:bg-[#FF8E25] text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-1 cursor-pointer transition", children: [u.jsx(On, { className: "h-4 w-4" }), u.jsx("input", { type: "file", accept: "image/*", className: "hidden", onChange: j => { j.target.files?.[0] && ne("story", null, "image", j.target.files[0]) } })] })] }), y.story.image && u.jsx("div", { className: "h-20 w-40 bg-white/5 border border-white/10 rounded overflow-hidden mt-1", children: u.jsx("img", { src: y.story.image, className: "h-full w-full object-cover" }) }), u.jsx("p", { className: "text-[10px] text-gray-500", children: "Leave blank to use the default bundled image." })] })] })] }), u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("h3", { className: "text-sm font-bold text-white border-b border-[#1E3E62] pb-2 flex items-center gap-2", children: [u.jsx(_s, { className: "h-4 w-4 text-[#FF8E25]" }), "Our Mission Section"] }), u.jsxs("div", { className: "grid gap-4", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Section Title" }), u.jsx("input", { type: "text", value: y.mission.title, onChange: j => X("mission", "title", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Paragraph 1" }), u.jsx("textarea", { rows: 3, value: y.mission.body1, onChange: j => X("mission", "body1", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg p-3 text-sm text-white" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Paragraph 2" }), u.jsx("textarea", { rows: 3, value: y.mission.body2, onChange: j => X("mission", "body2", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg p-3 text-sm text-white" })] })] })] }), u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("div", { className: "flex justify-between items-center border-b border-[#1E3E62] pb-2", children: [u.jsxs("h3", { className: "text-sm font-bold text-white flex items-center gap-2", children: [u.jsx(qt, { className: "h-4 w-4 text-[#FF8E25]" }), "Core Values"] }), u.jsxs("button", { onClick: () => Z("values", { title: "Value Title", body: "Description of core value" }), className: "bg-[#1E3E62] hover:bg-[#FF8E25] hover:text-white text-gray-200 px-3 py-1 rounded text-xs font-bold flex items-center gap-1 transition", children: [u.jsx(Wn, { className: "h-3.5 w-3.5" }), " Add Value"] })] }), u.jsxs("div", { children: [u.jsx("label", { className: "text-xs font-semibold text-gray-400 uppercase tracking-wide", children: "Section Heading" }), u.jsx("input", { type: "text", value: y.coreValues?.heading ?? "Our Core Values", onChange: j => X("coreValues", "heading", j.target.value), className: "mt-1 w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white", placeholder: "Our Core Values" })] }), u.jsx("div", { className: "space-y-4", children: y.values?.map((j, _) => u.jsxs("div", { className: "bg-[#060D17] border border-[#1E3E62]/60 rounded-lg p-4 relative space-y-3", children: [u.jsxs("div", { className: "flex items-center justify-between border-b border-[#1E3E62]/35 pb-1", children: [u.jsxs("span", { className: "text-xs font-bold text-gray-500", children: ["Value #", _ + 1] }), u.jsxs("div", { className: "flex items-center gap-1", children: [u.jsx("button", { onClick: () => O("values", _, "up"), className: "p-1 hover:bg-[#1E3E62] rounded text-gray-400 hover:text-white", children: u.jsx(Ts, { className: "h-3.5 w-3.5" }) }), u.jsx("button", { onClick: () => O("values", _, "down"), className: "p-1 hover:bg-[#1E3E62] rounded text-gray-400 hover:text-white", children: u.jsx(Cs, { className: "h-3.5 w-3.5" }) }), u.jsx("button", { onClick: () => W("values", _), className: "p-1 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300", children: u.jsx(Ms, { className: "h-3.5 w-3.5" }) })] })] }), u.jsx("div", { children: u.jsx("input", { type: "text", value: j.title, onChange: $ => le("values", _, "title", $.target.value), className: "w-full bg-[#0B192C] border border-[#1E3E62] rounded px-3 py-1.5 text-sm font-bold text-white focus:outline-none", placeholder: "Title" }) }), u.jsx("div", { children: u.jsx("textarea", { rows: 2, value: j.body, onChange: $ => le("values", _, "body", $.target.value), className: "w-full bg-[#0B192C] border border-[#1E3E62] rounded p-2 text-xs text-gray-300 focus:outline-none", placeholder: "Description" }) })] }, _)) })] })] }), m === "solutions" && y.hero && u.jsxs(u.Fragment, {
             children: [u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("h3", { className: "text-sm font-bold text-white border-b border-[#1E3E62] pb-2 flex items-center gap-2", children: [u.jsx(qt, { className: "h-4 w-4 text-[#FF8E25]" }), "Hero Section"] }), u.jsxs("div", { className: "grid gap-4", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Headline" }), u.jsx("input", { type: "text", value: y.hero.title, onChange: j => X("hero", "title", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Subtitle" }), u.jsx("textarea", { rows: 3, value: y.hero.subtitle, onChange: j => X("hero", "subtitle", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg p-3 text-sm text-white" })] }), u.jsxs("div", { className: "space-y-1", children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400", children: "Hero Background Image" }), u.jsxs("div", { className: "flex gap-2", children: [u.jsx("input", { type: "text", value: y.hero.image || "", onChange: j => X("hero", "image", j.target.value), className: "flex-1 bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#FF8E25]", placeholder: "Paste image URL or upload below" }), u.jsxs("label", { className: "bg-[#1E3E62] hover:bg-[#FF8E25] text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-1 cursor-pointer transition", children: [u.jsx(On, { className: "h-4 w-4" }), u.jsx("input", { type: "file", accept: "image/*", className: "hidden", onChange: j => { j.target.files?.[0] && ne("hero", null, "image", j.target.files[0]) } })] })] }), y.hero.image && u.jsx("div", { className: "h-20 w-40 bg-white/5 border border-white/10 rounded overflow-hidden mt-1", children: u.jsx("img", { src: y.hero.image, className: "h-full w-full object-cover" }) }), u.jsx("p", { className: "text-[10px] text-gray-500", children: "Leave blank to use the default bundled image." })] })] })] }), u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("h3", { className: "text-sm font-bold text-white border-b border-[#1E3E62] pb-2 flex items-center gap-2", children: [u.jsx(_s, { className: "h-4 w-4 text-[#FF8E25]" }), "Overview Section"] }), u.jsxs("div", { className: "grid gap-3", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Heading" }), u.jsx("input", { type: "text", value: y.overview?.heading ?? "Overview", onChange: j => X("overview", "heading", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Body Text" }), u.jsx("textarea", { rows: 4, value: y.overview?.body ?? "", onChange: j => X("overview", "body", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg p-3 text-sm text-white" })] })] })] }), u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("h3", { className: "text-sm font-bold text-white border-b border-[#1E3E62] pb-2 flex items-center gap-2", children: [u.jsx(qt, { className: "h-4 w-4 text-[#FF8E25]" }), "Section Headings"] }), u.jsxs("div", { className: "grid gap-3", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Solutions Section Heading" }), u.jsx("input", { type: "text", value: y.solutionsSection?.heading ?? "Six ways we plug into your business.", onChange: j => X("solutionsSection", "heading", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Core Capabilities Heading" }), u.jsx("input", { type: "text", value: y.capabilitiesSection?.heading ?? "Core Capabilities", onChange: j => X("capabilitiesSection", "heading", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] })] })] }), u.jsxs("div", {
@@ -1467,9 +2181,9 @@ m === "faq" && y.hero && u.jsxs(u.Fragment, { children: [u.jsxs("div", { classNa
               })
             ]
           }),
-          m === "seo" && u.jsx(nP, {}), m === "global" && y.header && u.jsxs(u.Fragment, { children: [u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("h3", { className: "text-sm font-bold text-white border-b border-[#1E3E62] pb-2 flex items-center gap-2", children: [u.jsx(_s, { className: "h-4 w-4 text-[#FF8E25]" }), "Header Navigation Settings"] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Brand Logo Text" }), u.jsx("input", { type: "text", value: y.header.logoText, onChange: j => X("header", "logoText", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] })] }), u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("h3", { className: "text-sm font-bold text-white border-b border-[#1E3E62] pb-2 flex items-center gap-2", children: [u.jsx(mf, { className: "h-4 w-4 text-[#FF8E25]" }), "Footer Settings"] }), u.jsxs("div", { className: "grid gap-4", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Copyright Line Text" }), u.jsx("input", { type: "text", value: y.footer.copyright, onChange: j => X("footer", "copyright", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] }), u.jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-4", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "LinkedIn Profile Link" }), u.jsx("input", { type: "text", value: y.footer.linkedin, onChange: j => X("footer", "linkedin", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Facebook Profile Link" }), u.jsx("input", { type: "text", value: y.footer.facebook, onChange: j => X("footer", "facebook", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Instagram Profile Link" }), u.jsx("input", { type: "text", value: y.footer.instagram, onChange: j => X("footer", "instagram", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] })] })] })] })] })]
+          m === "seo" && u.jsx(nP, {}), m === "users" && u.jsx(AdminUsersManager, { currentUser: t }), m === "global" && y.header && u.jsxs(u.Fragment, { children: [u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("h3", { className: "text-sm font-bold text-white border-b border-[#1E3E62] pb-2 flex items-center gap-2", children: [u.jsx(_s, { className: "h-4 w-4 text-[#FF8E25]" }), "Header Navigation Settings"] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Brand Logo Text" }), u.jsx("input", { type: "text", value: y.header.logoText, onChange: j => X("header", "logoText", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] })] }), u.jsxs("div", { className: "bg-[#0B192C] border border-[#1E3E62] rounded-xl p-6 space-y-4", children: [u.jsxs("h3", { className: "text-sm font-bold text-white border-b border-[#1E3E62] pb-2 flex items-center gap-2", children: [u.jsx(mf, { className: "h-4 w-4 text-[#FF8E25]" }), "Footer Settings"] }), u.jsxs("div", { className: "grid gap-4", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Copyright Line Text" }), u.jsx("input", { type: "text", value: y.footer.copyright, onChange: j => X("footer", "copyright", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] }), u.jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-4", children: [u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "LinkedIn Profile Link" }), u.jsx("input", { type: "text", value: y.footer.linkedin, onChange: j => X("footer", "linkedin", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Facebook Profile Link" }), u.jsx("input", { type: "text", value: y.footer.facebook, onChange: j => X("footer", "facebook", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] }), u.jsxs("div", { children: [u.jsx("label", { className: "block text-xs font-semibold text-gray-400 mb-1", children: "Instagram Profile Link" }), u.jsx("input", { type: "text", value: y.footer.instagram, onChange: j => X("footer", "instagram", j.target.value), className: "w-full bg-[#060D17] border border-[#1E3E62] rounded-lg px-3 py-2 text-sm text-white" })] })] })] })] })] })]
         })
-      }), k && m !== "enquiries" && m !== "seo" && u.jsxs("div", { className: "fixed bottom-0 left-0 right-0 md:left-64 bg-[#0B192C] border-t border-[#FF8E25] p-4 flex items-center justify-between shadow-2xl z-40", children: [u.jsxs("span", { className: "text-sm font-semibold text-gray-300", children: ["You have unsaved adjustments for", " ", m.startsWith("solution_") ? `Solution: ${Tf[m.replace("solution_", "")] || m}` : Se.find(j => j.id === m)?.label, "!"] }), u.jsxs("div", { className: "flex gap-2", children: [u.jsx("button", { onClick: () => { confirm("Discard all edits?") && Ee(m) }, className: "px-4 py-2 bg-transparent text-gray-300 hover:text-white border border-[#1E3E62] rounded-lg text-xs font-bold", children: "Discard" }), u.jsxs("button", { onClick: he, disabled: M, className: "px-4 py-2 bg-[#FF8E25] hover:bg-[#ff9c3a] text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow", children: [M && u.jsx(Er, { className: "h-3 animate-spin" }), "Save Edits"] })] })] })]
+      }), k && m !== "enquiries" && m !== "seo" && m !== "users" && u.jsxs("div", { className: "fixed bottom-0 left-0 right-0 md:left-64 bg-[#0B192C] border-t border-[#FF8E25] p-4 flex items-center justify-between shadow-2xl z-40", children: [u.jsxs("span", { className: "text-sm font-semibold text-gray-300", children: ["You have unsaved adjustments for", " ", m.startsWith("solution_") ? `Solution: ${Tf[m.replace("solution_", "")] || m}` : Se.find(j => j.id === m)?.label, "!"] }), u.jsxs("div", { className: "flex gap-2", children: [u.jsx("button", { onClick: () => { confirm("Discard all edits?") && Ee(m) }, className: "px-4 py-2 bg-transparent text-gray-300 hover:text-white border border-[#1E3E62] rounded-lg text-xs font-bold", children: "Discard" }), u.jsxs("button", { onClick: he, disabled: M, className: "px-4 py-2 bg-[#FF8E25] hover:bg-[#ff9c3a] text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow", children: [M && u.jsx(Er, { className: "h-3 animate-spin" }), "Save Edits"] })] })] })]
     }), u.jsx(R2, { theme: "dark", position: "top-right", closeButton: !0 })]
   })
 } const rP = ys("/about")({ component: oP, head: () => ({ meta: [{ title: "About Us, Ceylon Talent Connect" }, { name: "description", content: "Specialists in co-sourcing, connecting businesses with high-performing Sri Lankan talent, embedded into your operations and accountable to your outcomes." }, { property: "og:title", content: "About Ceylon Talent Connect" }, { property: "og:description", content: "Inspired by human connections, building meaningful partnerships between businesses and talent." }] }) }), iP = { hero: { title: "About Us", body: "We're specialists in co-sourcing, connecting businesses with high-performing Sri Lankan talent, embedded into your operations and accountable to your outcomes.", image: "" }, story: { title: "Inspired by human connections.", body1: "Ceylon Talent Connect was founded with a clear vision: to unlock exceptional talent and connect them with businesses seeking smarter, more reliable, and cost-effective ways to scale.", body2: "At our core, we're inspired by human connections, building meaningful partnerships between businesses and talent, where people feel valued, supported, and empowered to do their best work.", image: "" }, mission: { title: "Our Mission", body1: "To empower businesses to thrive by connecting them with skilled Sri Lankan professionals through seamless, cost-effective, and scalable co-sourcing solutions.", body2: "We prioritise ethical and sustainable practices, ensuring fair opportunities, ethical working conditions, and pathways for professional development." }, coreValues: { heading: "Our Core Values" }, values: [{ title: "Integrity", body: "Upholding the highest ethical standards and building strong, transparent relationships." }, { title: "Exceptional Talent", body: "Providing our clients with highly skilled professionals who embody professionalism and expertise." }, { title: "Value-Driven Solutions", body: "Delivering quality results that offer tangible business benefits and ROI for our clients." }, { title: "Sustainable Growth", body: "Promoting fair opportunities, supporting professional development, and ensuring ongoing value creation for all." }, { title: "Innovation & Excellence", body: "Embracing continuous improvement and new technologies, including AI, to offer cutting-edge outsourcing solutions." }] }, aP = { Integrity: Rs, "Exceptional Talent": qt, "Value-Driven Solutions": Z5, "Sustainable Growth": b_, "Innovation & Excellence": Oy }; function oP() { const { content: n } = bs("about", iP), e = Br("about"), t = Qs(); return u.jsxs(u.Fragment, { children: [u.jsx(zr, { page: "about", seo: e, global: t }), u.jsxs("section", { className: "relative overflow-hidden flex items-center subpage-hero", children: [u.jsxs("div", { className: "absolute inset-0", children: [u.jsx("img", { src: n.hero.image || Lk, alt: "Ceylon Talent Connect team", width: 1280, height: 896, className: "h-full w-full object-cover" }), u.jsx("div", { className: "absolute inset-0 bg-gradient-to-br from-primary/95 via-primary/85 to-primary/60" })] }), u.jsx("div", { className: "relative w-full mx-auto max-w-[1280px] px-6 lg:px-16 pt-20 pb-24 lg:pt-28 lg:pb-32", children: u.jsxs("div", { className: "max-w-3xl text-primary-foreground", children: [u.jsx("h1", { className: "text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.95] font-extrabold animate-fade-in text-white", children: u.jsx(fl, { title: n.hero.title }) }), u.jsx("p", { className: "mt-6 max-w-2xl text-base md:text-lg text-white/80 leading-relaxed", children: n.hero.body })] }) })] }), u.jsx("section", { className: "py-16 sm:py-24 lg:py-32", children: u.jsxs("div", { className: "mx-auto max-w-[1280px] px-6 lg:px-16 grid lg:grid-cols-12 gap-12 items-center", children: [u.jsx("div", { className: "lg:col-span-5", children: u.jsx("div", { className: "overflow-hidden rounded-3xl", children: u.jsx("img", { src: n.story.image || Bk, alt: "Building partnerships", width: 1024, height: 1024, loading: "lazy", className: "w-full h-auto object-cover" }) }) }), u.jsxs("div", { className: "lg:col-span-6 lg:col-start-7", children: [u.jsx("h2", { className: "mt-3 text-4xl md:text-5xl font-extrabold text-primary leading-[1.05]", children: n.story.title }), u.jsxs("div", { className: "mt-6 space-y-5 text-base leading-relaxed text-muted-foreground", children: [u.jsx("p", { children: n.story.body1 }), u.jsx("p", { children: n.story.body2 })] })] })] }) }), u.jsx("section", { className: "py-16 sm:py-24 lg:py-32 bg-surface", children: u.jsxs("div", { className: "mx-auto max-w-[1280px] px-6 lg:px-16", children: [u.jsx("h2", { className: "text-4xl md:text-5xl font-extrabold text-primary leading-[1.05]", children: n.mission.title }), u.jsxs("div", { className: "mt-6 space-y-5 text-base leading-relaxed text-muted-foreground", children: [u.jsx("p", { children: n.mission.body1 }), u.jsx("p", { children: n.mission.body2 })] })] }) }), u.jsx("section", { className: "py-16 sm:py-24 lg:py-32", children: u.jsxs("div", { className: "mx-auto max-w-[1280px] px-6 lg:px-16", children: [u.jsx("div", { className: "flex items-end justify-between flex-wrap gap-6", children: u.jsx("div", { children: u.jsx("h2", { className: "text-4xl md:text-5xl font-extrabold text-primary leading-[1.05]", children: n.coreValues?.heading || "Our Core Values" }) }) }), u.jsx("div", { className: "mt-14 grid md:grid-cols-2 lg:grid-cols-3 gap-6", children: n.values.map(s => { const r = aP[s.title] || Rs; return u.jsxs("article", { className: "group relative rounded-2xl border border-border bg-card p-7 hover:bg-primary hover:border-primary transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated overflow-hidden", children: [u.jsx("div", { className: "absolute -right-8 -top-8 h-32 w-32 rounded-full bg-accent/10 group-hover:bg-accent/20 blur-2xl transition" }), u.jsx("div", { className: "relative", children: u.jsx("div", { className: "h-12 w-12 rounded-xl bg-surface group-hover:bg-white/10 grid place-items-center transition", children: u.jsx(r, { className: "h-6 w-6 text-accent", strokeWidth: 2 }) }) }), u.jsx("h3", { className: "relative mt-6 text-xl font-bold text-primary group-hover:text-white leading-tight", children: s.title }), u.jsx("p", { className: "relative mt-3 text-sm leading-relaxed text-muted-foreground group-hover:text-white/80", children: s.body })] }, s.title) }) })] }) }), u.jsx("section", { id: "contact", className: "py-12 lg:py-16", children: u.jsx("div", { className: "mx-auto max-w-[1280px] px-6 lg:px-16", children: u.jsxs("div", { className: "relative overflow-hidden rounded-3xl bg-primary text-primary-foreground p-6 sm:p-10 md:p-16", children: [u.jsx("div", { className: "absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent/20 blur-3xl" }), u.jsx("div", { className: "absolute -left-16 -bottom-24 h-80 w-80 rounded-full bg-accent/10 blur-3xl" }), u.jsxs("div", { className: "relative grid lg:grid-cols-12 gap-10 items-center", children: [u.jsxs("div", { className: "lg:col-span-7", children: [u.jsx("p", { className: "eyebrow text-accent", children: "Get in touch" }), u.jsxs("h2", { className: "mt-3 text-4xl md:text-5xl font-extrabold leading-[1.05]", children: ["Ready to explore ", u.jsx("br", {}), "what co-sourcing can do?"] }), u.jsx("p", { className: "mt-5 max-w-lg text-white/75", children: "Have a question or ready to see how Ceylon Talent Connect can support your business? Send us a message and our team will be in touch shortly." })] }), u.jsx("div", { className: "lg:col-span-5 glass rounded-2xl p-6 text-foreground", children: u.jsxs("div", { className: "space-y-4", children: [u.jsxs("a", { href: "tel:1300241103", className: "flex items-center justify-between gap-3 border-b border-border pb-4", children: [u.jsxs("div", { className: "min-w-0", children: [u.jsx("p", { className: "eyebrow text-muted-foreground", children: "Call us" }), u.jsx("p", { className: "mt-1 text-lg font-bold text-primary", children: "1300 241 103" })] }), u.jsx("span", { className: "shrink-0 text-accent", children: "→" })] }), u.jsxs("a", { href: "mailto:info@ceylontalentconnect.com", className: "flex items-center justify-between gap-3 border-b border-border pb-4", children: [u.jsxs("div", { className: "min-w-0", children: [u.jsx("p", { className: "eyebrow text-muted-foreground", children: "Email" }), u.jsx("p", { className: "mt-1 truncate text-sm sm:text-base font-semibold text-primary", children: "info@ceylontalentconnect.com" })] }), u.jsx("span", { className: "shrink-0 text-accent", children: "→" })] }), u.jsx(rt, { to: "/contact", className: "block w-full text-center rounded-lg bg-accent px-5 py-3.5 text-sm font-semibold text-accent-foreground hover:brightness-110 transition", children: "Get in touch" })] }) })] })] }) }) })] }) } const lP = "/ctc/assets/Drswherebuy-DQNj9FhC.jpg", cP = "/ctc/assets/Eyeview-aX8xMwts.jpg", uP = "/ctc/assets/Global-awning-zzgAkJbl.jpg", dP = "/ctc/assets/Maroo-C6OMGh5G.jpg", fP = "/ctc/assets/Oruva-DSzlkaTW.jpg", hP = "/ctc/assets/RH-CmkMS0mX.jpg", pP = "/ctc/assets/Royal-Stacks-BvP1NVpY.jpg", mP = "/ctc/assets/Shade-linux-BCAUD1nf.jpg", gP = ys("/")({ component: SP, head: () => ({ meta: [{ title: "Ceylon Talent Connect, Inspired by human connections" }, { name: "description", content: "Dedicated, high-performing talent embedded into your operations. Fully managed co-sourcing from $1,350/month, ready in 7 days." }, { property: "og:title", content: "Ceylon Talent Connect" }, { property: "og:description", content: "Co-sourcing, done right. Skilled, English-fluent talent based in Sri Lanka, managed from Australia." }] }) }), xP = [{ title: "Skilled, English-Fluent VAs", body: "Based in Sri Lanka, our VAs bring strong experience in administration, customer support, and back-office operations." }, { title: "Fully Dedicated Team Members", body: "Your team works exclusively for you. No task-sharing, no split focus, and no juggling across multiple clients." }, { title: "End-to-end Management", body: "We take care of the entire employee lifecycle, from recruitment and onboarding to training, payroll, and HR support." }, { title: "Cost-Effective Top-Tier Talent", body: "Access top-tier professionals without the heavy overheads. Skilled talent that delivers maximum value for every dollar." }, { title: "Across Global Time-Zones", body: "Our teams are strategically positioned to support your business around the clock, standard coverage or full 24/7." }, { title: "Australian-Registered & On-Shore Support", body: "Registered in Australia, our local team co-leads onboarding, compliance, and ongoing support for a smooth rollout." }], YC = [{ name: "Virtual Assistants", icon: Ia, body: "Our Virtual Assistants handle a wide range of administrative, scheduling, and coordination tasks to keep your business moving smoothly. Ideal for businesses that need real-time operational support without hiring in-house." }, { name: "Customer Service", icon: Ay, body: "Our customer service specialists ensure seamless communication across all touchpoints: phone, email, and web chat. From real-time order updates to post-service follow-ups, they help keep your customers happy and informed every step of the way." }, { name: "Digital Marketers", icon: Ry, body: "Staying visible online takes more than occasional posts or ad-hoc campaigns. Our Digital Marketers work as an extension of your brand, delivering ongoing content, strategy, and analysis to grow your audience, boost engagement, and drive" }, { name: "IT Helpdesk Support", icon: wk, body: "Our IT Helpdesk specialists provide fast, reliable support to keep your business running without disruption. From resolving day-to-day technical issues to managing systems, access, and devices, they act as an extension of your team, ensuring" }, { name: "Book-Keepers", icon: mk, body: "Our experienced Book-keepers handle day-to-day finance functions so you can focus on growth. From reconciliation to reporting, we ensure your financials are always in good shape." }], yP = [{ name: "The Doctors Werribee", src: lP }, { name: "Eyeview", src: cP }, { name: "Global Awning", src: uP }, { name: "Maroo", src: dP }, { name: "Oruva", src: fP }, { name: "RH", src: hP }, { name: "Royal Stacks", src: pP }, { name: "Shade Lux", src: mP }], bP = {

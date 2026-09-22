@@ -43,6 +43,13 @@ Route::prefix('api/cms')->group(function () {
     Route::get('/seo/all', [SeoController::class, 'allPages']);
     Route::post('/seo/global', [SeoController::class, 'saveGlobal']);
     Route::post('/seo/page', [SeoController::class, 'savePage']);
+
+    // Admin user management (auth checked inside controller)
+    Route::get('/users', [CMSController::class, 'getUsers']);
+    Route::post('/users', [CMSController::class, 'createUser']);
+    Route::put('/users/{id}', [CMSController::class, 'updateUser']);
+    Route::put('/users/{id}/password', [CMSController::class, 'updatePassword']);
+    Route::delete('/users/{id}', [CMSController::class, 'deleteUser']);
 });
 
 // Wildcard routing to serve the TanStack prerendered static pages under the root domain
