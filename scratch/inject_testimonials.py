@@ -763,44 +763,83 @@ function TestimonialsPageComp() {
 
       // Client Reviews Section
       u.jsxs("section", {
-        className: "py-20 bg-[#F9FAFB] border-t border-gray-100",
+        className: "py-16 sm:py-20",
+        style: { backgroundColor: "#F9FAFC" },
         children: [
           u.jsxs("div", {
-            className: "mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8",
+            className: "mx-auto px-4 sm:px-6 lg:px-8",
+            style: { maxWidth: "1040px", margin: "0 auto" },
             children: [
               u.jsx("h2", {
-                className: "text-2xl sm:text-3xl font-extrabold text-[#0B192C] text-center mb-12 tracking-tight",
+                className: "font-extrabold text-[#1E293B] text-center tracking-tight",
+                style: { fontSize: "26px", fontWeight: "800", color: "#1E293B", textAlign: "center", marginBottom: "36px" },
                 children: clientReviews.sectionTitle || "Client Reviews"
               }),
               u.jsxs("div", {
-                className: "relative max-w-[1040px] mx-auto px-6 sm:px-12 flex items-center justify-center",
+                className: "client-reviews-container relative w-full flex items-center justify-center",
+                style: { position: "relative", width: "100%", maxWidth: "760px", margin: "0 auto" },
                 children: [
                   u.jsx("button", {
                     onClick: prevReview,
-                    className: "absolute left-0 sm:left-1 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white border border-gray-200/90 shadow-md hover:shadow-lg flex items-center justify-center text-gray-700 hover:text-gray-950 transition-all duration-200 active:scale-95 cursor-pointer focus:outline-none",
+                    className: "absolute z-20 rounded-full bg-white border border-gray-200/90 shadow-md hover:shadow-lg flex items-center justify-center text-gray-700 hover:text-gray-950 transition-all duration-200 active:scale-95 cursor-pointer focus:outline-none",
+                    style: {
+                      position: "absolute",
+                      left: "-18px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: "38px",
+                      height: "38px",
+                      zIndex: 20,
+                      backgroundColor: "#FFFFFF",
+                      borderRadius: "9999px",
+                      border: "1px solid #E5E7EB",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                      cursor: "pointer"
+                    },
                     "aria-label": "Previous review",
                     children: u.jsx("svg", {
-                      className: "w-5 h-5",
+                      className: "w-4 h-4",
+                      style: { width: "16px", height: "16px" },
                       fill: "none",
                       viewBox: "0 0 24 24",
                       stroke: "currentColor",
-                      strokeWidth: "2.2",
+                      strokeWidth: "2.5",
                       children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", d: "M15 19l-7-7 7-7" })
                     })
                   }),
                   u.jsx("div", {
-                    className: "grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 w-full justify-items-center",
+                    className: "grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 w-full justify-items-center",
+                    style: {
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                      gap: "20px",
+                      width: "100%",
+                      justifyItems: "center"
+                    },
                     children: visibleCards.map((item, idx) => {
                       return u.jsxs("div", {
                         key: item.id || idx,
-                        className: "w-full max-w-[440px] bg-white rounded-3xl border border-gray-200/90 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col p-2.5 sm:p-3",
+                        className: "card-client-review bg-white rounded-3xl border border-gray-200/90 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col p-2.5 sm:p-3",
+                        style: {
+                          width: "100%",
+                          maxWidth: "355px",
+                          backgroundColor: "#FFFFFF",
+                          borderRadius: "20px",
+                          border: "1px solid #E5E7EB",
+                          boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+                          padding: "10px",
+                          display: "flex",
+                          flexDirection: "column"
+                        },
                         children: [
                           item.cardImage ? u.jsx("img", {
                             src: item.cardImage,
                             alt: `${item.clientName || 'Client'} Review`,
-                            className: "w-full h-auto rounded-2xl object-cover shadow-inner"
+                            className: "w-full h-auto object-cover",
+                            style: { width: "100%", height: "auto", borderRadius: "14px", display: "block" }
                           }) : u.jsxs("div", {
                             className: "p-6 flex flex-col justify-between h-full space-y-4",
+                            style: { padding: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" },
                             children: [
                               u.jsxs("div", {
                                 className: "flex items-center justify-between",
@@ -831,14 +870,29 @@ function TestimonialsPageComp() {
                   }),
                   u.jsx("button", {
                     onClick: nextReview,
-                    className: "absolute right-0 sm:right-1 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white border border-gray-200/90 shadow-md hover:shadow-lg flex items-center justify-center text-gray-700 hover:text-gray-950 transition-all duration-200 active:scale-95 cursor-pointer focus:outline-none",
+                    className: "absolute z-20 rounded-full bg-white border border-gray-200/90 shadow-md hover:shadow-lg flex items-center justify-center text-gray-700 hover:text-gray-950 transition-all duration-200 active:scale-95 cursor-pointer focus:outline-none",
+                    style: {
+                      position: "absolute",
+                      right: "-18px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: "38px",
+                      height: "38px",
+                      zIndex: 20,
+                      backgroundColor: "#FFFFFF",
+                      borderRadius: "9999px",
+                      border: "1px solid #E5E7EB",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                      cursor: "pointer"
+                    },
                     "aria-label": "Next review",
                     children: u.jsx("svg", {
-                      className: "w-5 h-5",
+                      className: "w-4 h-4",
+                      style: { width: "16px", height: "16px" },
                       fill: "none",
                       viewBox: "0 0 24 24",
                       stroke: "currentColor",
-                      strokeWidth: "2.2",
+                      strokeWidth: "2.5",
                       children: u.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", d: "M9 5l7 7-7 7" })
                     })
                   })

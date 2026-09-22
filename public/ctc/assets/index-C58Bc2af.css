@@ -166,6 +166,13 @@
 }
 
 .card-client-review {
-  max-width: 440px !important;
+  max-width: 355px !important;
   width: 100% !important;
+}
+
+.client-reviews-container {
+  max-width: 750px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  position: relative !important;
 }
