@@ -159,10 +159,38 @@
   }
 }
 
+.video-reviews-grid {
+  display: grid !important;
+  grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+}
+
+@media (min-width: 640px) {
+  .video-reviews-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 24px !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .video-reviews-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 28px !important;
+  }
+}
+
 .card-video-review {
-  width: 245px !important;
-  max-width: 100% !important;
+  width: 100% !important;
+  max-width: 340px !important;
   flex-shrink: 0 !important;
+}
+
+.card-video-review .video-media-wrapper {
+  width: 100% !important;
+  aspect-ratio: 16 / 9 !important;
+  height: auto !important;
+  min-height: 180px !important;
 }
 
 .card-client-review {

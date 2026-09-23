@@ -2340,8 +2340,8 @@ function TestimonialsPageComp() {
                 children: videoReviews.sectionTitle || "Video Reviews"
               }),
               u.jsx("div", {
-                className: "flex flex-wrap justify-start gap-6 sm:gap-8",
-                style: { display: "flex", flexWrap: "wrap", justifyContent: "flex-start", gap: "24px" },
+                className: "video-reviews-grid w-full",
+                style: { width: "100%" },
                 children: videoItems.map((item, idx) => {
                   const embedUrl = getEmbedUrl(item.videoUrl);
                   const rawQuote = (item.quote || "A fantastic experience working with Ceylon Talent Connect.").trim();
@@ -2351,11 +2351,11 @@ function TestimonialsPageComp() {
                   return u.jsxs("div", {
                     key: item.id || idx,
                     className: "card-video-review bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col",
-                    style: { width: "245px", maxWidth: "100%", flexShrink: 0, borderRadius: "16px", backgroundColor: "#FFFFFF", border: "1px solid rgba(229,231,235,0.8)" },
+                    style: { width: "100%", maxWidth: "340px", borderRadius: "16px", backgroundColor: "#FFFFFF", border: "1px solid rgba(229,231,235,0.8)" },
                     children: [
                       u.jsx("div", {
-                        className: "relative bg-black overflow-hidden",
-                        style: { width: "100%", height: "128px", borderTopLeftRadius: "16px", borderTopRightRadius: "16px", overflow: "hidden" },
+                        className: "video-media-wrapper relative bg-black overflow-hidden",
+                        style: { width: "100%", aspectRatio: "16 / 9", minHeight: "180px", borderTopLeftRadius: "16px", borderTopRightRadius: "16px", overflow: "hidden" },
                         children: embedUrl ? u.jsx("iframe", {
                           src: embedUrl,
                           title: item.title || "Video Review",
@@ -2372,11 +2372,11 @@ function TestimonialsPageComp() {
                       }),
                       u.jsxs("div", {
                         className: "flex-1 flex flex-col justify-between",
-                        style: { padding: "16px" },
+                        style: { padding: "18px 20px" },
                         children: [
                           u.jsx("p", {
                             className: "font-normal leading-relaxed",
-                            style: { fontSize: "13.5px", lineHeight: "1.45", color: "#374151", marginBottom: "16px" },
+                            style: { fontSize: "14px", lineHeight: "1.5", color: "#374151", marginBottom: "18px" },
                             children: displayQuote
                           }),
                           u.jsxs("div", {
@@ -2385,19 +2385,19 @@ function TestimonialsPageComp() {
                             children: [
                               u.jsx("div", {
                                 className: "rounded-full flex items-center justify-center text-white font-bold shrink-0 shadow-sm",
-                                style: { width: "34px", height: "34px", minWidth: "34px", borderRadius: "9999px", backgroundColor: item.avatarBg || "#EF4444", fontSize: "11px" },
+                                style: { width: "38px", height: "38px", minWidth: "38px", borderRadius: "9999px", backgroundColor: item.avatarBg || "#EF4444", fontSize: "12px" },
                                 children: initials
                               }),
                               u.jsxs("div", {
                                 children: [
                                   u.jsx("h4", {
                                     className: "font-bold text-gray-900 leading-snug",
-                                    style: { fontSize: "13.5px", fontWeight: "700", color: "#111827", margin: 0 },
+                                    style: { fontSize: "14px", fontWeight: "700", color: "#111827", margin: 0 },
                                     children: item.authorName || "Shade Lux"
                                   }),
                                   u.jsx("p", {
                                     className: "text-gray-500 font-normal",
-                                    style: { fontSize: "11.5px", color: "#6B7280", marginTop: "2px", margin: 0 },
+                                    style: { fontSize: "12px", color: "#6B7280", marginTop: "2px", margin: 0 },
                                     children: item.authorRole || "Client"
                                   })
                                 ]
